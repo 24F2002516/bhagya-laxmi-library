@@ -1,0 +1,1657 @@
+{% extends "base.html" %}
+
+{% block title %}Student Dashboard | Bhagya Laxmi Library{% endblock %}
+
+{% block content %}
+
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+    <!-- =========================================================
+         HEADER / WELCOME BANNER
+    ========================================================== -->
+
+    <div class="bg-white rounded-2xl p-6 sm:p-8 border border-slate-200 shadow-sm mb-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+
+        <div>
+
+            <div class="flex items-center gap-3">
+
+                <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+                    Welcome, {{ student_profile.full_name }}
+                </h1>
+
+                {% if active_booking and active_booking.is_confirmed %}
+
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800">
+                        Active Member
+                    </span>
+
+                {% elif active_booking and active_booking.in_grace_period %}
+
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-800 animate-pulse">
+                        Grace Period (48h)
+                    </span>
+
+                {% elif active_booking and active_booking.status == 'PENDING_PAYMENT' %}
+
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-100 text-blue-800">
+                        Seat Held (Pending Payment)
+                    </span>
+
+                {% else %}
+
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-700">
+                        No Active Seat
+                    </span>
+
+                {% endif %}
+
+            </div>
+
+            <p class="text-sm text-slate-500 mt-1">
+                Student Account:
+                <strong class="text-slate-700">
+                    {{ request.user.email }}
+                </strong>
+                &bull;
+                Phone:
+                {{ request.user.phone_number }}
+            </p>
+
+        </div>
+
+
+        <div class="flex flex-wrap gap-3">
+
+            <a
+                href="{% url 'portal:profile' %}"
+                class="inline-flex items-center px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-lg transition-colors"
+            >
+                Profile & KYC
+            </a>
+
+            <a
+                href="{% url 'portal:history' %}"
+                class="inline-flex items-center px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-lg transition-colors"
+            >
+                Receipts & History
+            </a>
+
+            <a
+                href="{% url 'accounts:change_password' %}"
+                class="inline-flex items-center px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-lg transition-colors"
+            >
+                Change Password
+            </a>
+
+        </div>
+
+    </div>
+
+
+    <!-- =========================================================
+         LIVE SEAT HOLD / PAYMENT AREA
+    ========================================================== -->
+
+    {% if active_booking and active_booking.status == 'PENDING_PAYMENT' %}
+
+        <div class="bg-gradient-to-r from-blue-950 via-slate-900 to-indigo-950 rounded-2xl p-6 sm:p-8 text-white shadow-lg mb-8 border border-blue-800">
+
+            <!-- Header -->
+
+            <div class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 pb-6 border-b border-slate-700/60">
+
+                <div>
+
+                    <div
+                        id="seat-hold-badge"
+                        class="inline-flex items-center gap-2 px-3 py-1 rounded-full {% if active_booking.is_hold_expired and not pending_payment.is_submitted %}bg-rose-500/20 text-rose-300 border-rose-400/30{% else %}bg-blue-500/20 text-blue-300 border-blue-400/30{% endif %} text-xs font-semibold mb-2 border"
+                    >
+
+                        <span class="w-2 h-2 rounded-full {% if active_booking.is_hold_expired and not pending_payment.is_submitted %}bg-rose-400{% else %}bg-blue-400 animate-pulse{% endif %}"></span>
+
+                        {% if active_booking.is_hold_expired and not pending_payment.is_submitted %}
+
+                            Hold Expired
+
+                        {% else %}
+
+                            Seat Allocation In Progress
+
+                        {% endif %}
+
+                    </div>
+
+
+                    <h2
+                        id="seat-hold-title"
+                        class="text-2xl font-bold tracking-tight"
+                    >
+
+                        {% if active_booking.is_hold_expired and not pending_payment.is_submitted %}
+
+                            Your Seat Hold Has Expired
+
+                        {% else %}
+
+                            Seat #{{ active_booking.seat.number }} is Temporarily Held For You
+
+                        {% endif %}
+
+                    </h2>
+
+
+                    <p
+                        id="seat-hold-subtitle"
+                        class="text-sm text-slate-300 mt-1 max-w-xl"
+                    >
+
+                        {% if active_booking.is_hold_expired and not pending_payment.is_submitted %}
+
+                            The 30-minute allocation window has elapsed.
+                            Please select "Book Another Seat" to obtain a new seat.
+
+                        {% else %}
+
+                            Seat Fee:
+                            <strong>₹{{ seat_fee }}.00</strong>
+                            for 30 calendar days.
+                            Complete manual UPI payment and submit your transaction UTR reference below.
+
+                        {% endif %}
+
+                    </p>
+
+                </div>
+
+
+                <!-- Countdown -->
+
+                <div class="bg-slate-800/80 backdrop-blur rounded-xl p-4 sm:p-5 border border-slate-700 text-center min-w-[240px]">
+
+                    <p class="text-xs uppercase font-semibold text-slate-400 tracking-wider mb-1">
+
+                        {% if pending_payment.is_submitted %}
+
+                            Payment Proof Status
+
+                        {% else %}
+
+                            Seat Hold Remaining Time
+
+                        {% endif %}
+
+                    </p>
+
+
+                    {% if pending_payment.is_submitted %}
+
+                        <div class="text-emerald-400 font-bold text-lg flex items-center justify-center gap-2 py-1">
+
+                            <svg
+                                class="w-5 h-5"
+                                fill="currentColor"
+                                viewBox="0 0 20 20"
+                            >
+                                <path
+                                    fill-rule="evenodd"
+                                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                                    clip-rule="evenodd"
+                                ></path>
+                            </svg>
+
+                            <span>
+                                UTR Submitted
+                            </span>
+
+                        </div>
+
+                        <p class="text-xs text-slate-300 mt-1">
+                            Awaiting Admin Verification (Seat Held)
+                        </p>
+
+                    {% else %}
+
+                        <div
+                            id="countdown-timer"
+                            data-expires="{{ active_booking.hold_expires_at.isoformat }}"
+                            class="text-3xl sm:text-4xl font-mono font-extrabold {% if active_booking.is_hold_expired %}text-rose-400{% else %}text-amber-400{% endif %} tracking-wider"
+                        >
+
+                            {% if active_booking.is_hold_expired %}
+
+                                00:00
+
+                            {% else %}
+
+                                --:--
+
+                            {% endif %}
+
+                        </div>
+
+
+                        <p
+                            id="countdown-status"
+                            class="text-xs text-slate-300 mt-1"
+                        >
+
+                            {% if active_booking.is_hold_expired %}
+
+                                Your 30-minute seat hold has expired.
+
+                            {% else %}
+
+                                Submit payment proof before expiry
+
+                            {% endif %}
+
+                        </p>
+
+                    {% endif %}
+
+                </div>
+
+            </div>
+
+
+            <!-- =====================================================
+                 PAYMENT AREA
+            ====================================================== -->
+
+            <div class="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+
+
+                <!-- =================================================
+                     LEFT: UPI PAYMENT INFORMATION
+                ================================================== -->
+
+                <div class="bg-slate-800/50 rounded-xl p-5 border border-slate-700/60">
+
+                    <h3 class="text-base font-semibold text-white mb-4 flex items-center gap-2">
+
+                        <span>📱</span>
+
+                        Manual UPI Payment
+
+                    </h3>
+
+
+                    <!-- QR CODE PAYMENT BUTTON -->
+
+                    <div class="mb-5">
+
+                        <p class="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">
+                            Scan & Pay
+                        </p>
+
+                        {% if upi_qr_url %}
+
+                            <button
+                                type="button"
+                                id="open-qr-modal-btn"
+                                class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-sm rounded-xl shadow-lg transition-all transform hover:-translate-y-0.5"
+                            >
+                                <span class="text-lg">📱</span>
+                                Pay ₹{{ seat_fee }}.00
+                            </button>
+
+                            <p class="text-xs text-slate-400 mt-2">
+                                Tap Pay to scan the library's UPI QR code.
+                            </p>
+
+                        {% else %}
+
+                            <div class="rounded-xl border border-dashed border-slate-600 px-4 py-4">
+                                <p class="text-xs text-slate-400">
+                                    QR code has not been configured by the library administrator yet.
+                                </p>
+                            </div>
+
+                        {% endif %}
+
+                    </div>
+
+
+                    <!-- Dynamic UPI ID -->
+
+                    <div class="mb-5">
+
+                        <p class="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">
+                            Library UPI ID
+                        </p>
+
+
+                        {% if upi_vpa %}
+
+                            <div class="flex items-center gap-2">
+
+                                <code class="flex-1 bg-slate-950 border border-slate-700 px-3 py-2.5 rounded-lg text-emerald-300 font-mono text-sm select-all break-all">
+                                    {{ upi_vpa }}
+                                </code>
+
+                                <button
+                                    type="button"
+                                    id="copy-upi-btn"
+                                    class="shrink-0 px-3 py-2.5 bg-slate-700 hover:bg-slate-600 text-white text-xs font-semibold rounded-lg transition-colors"
+                                >
+                                    Copy
+                                </button>
+
+                            </div>
+
+                        {% else %}
+
+                            <div class="bg-slate-950 border border-amber-700/50 px-3 py-2.5 rounded-lg text-amber-300 text-xs">
+                                UPI ID has not been configured yet.
+                            </div>
+
+                        {% endif %}
+
+                    </div>
+
+
+                    <!-- Instructions -->
+
+                    <ul class="text-xs sm:text-sm text-slate-300 space-y-2.5">
+
+                        <li class="flex items-start gap-2">
+
+                            <span class="text-emerald-400 font-bold">
+                                1.
+                            </span>
+
+                            <span>
+                                Open any UPI App such as GPay, PhonePe, Paytm, BHIM or Cred.
+                            </span>
+
+                        </li>
+
+
+                        <li class="flex items-start gap-2">
+
+                            <span class="text-emerald-400 font-bold">
+                                2.
+                            </span>
+
+                            <span>
+
+                                Send exactly
+                                <strong class="text-white">
+                                    ₹{{ seat_fee }}.00
+                                </strong>
+
+                                to the library UPI ID shown above,
+                                or scan the QR code.
+
+                            </span>
+
+                        </li>
+
+
+                        <li class="flex items-start gap-2">
+
+                            <span class="text-emerald-400 font-bold">
+                                3.
+                            </span>
+
+                            <span>
+
+                                Copy the
+                                <strong class="text-white">
+                                    UPI Ref No. / UTR Number
+                                </strong>
+                                from your transaction receipt.
+
+                            </span>
+
+                        </li>
+
+
+                        <li class="flex items-start gap-2">
+
+                            <span class="text-emerald-400 font-bold">
+                                4.
+                            </span>
+
+                            <span>
+                                Enter the UTR number in the form and submit your payment proof.
+                            </span>
+
+                        </li>
+
+                    </ul>
+
+                </div>
+
+
+                <!-- =================================================
+                     RIGHT: FORM / PAYMENT STATUS
+                ================================================== -->
+
+                <div
+                    id="payment-card-container"
+                    class="bg-white text-slate-900 rounded-xl p-5 shadow-sm"
+                >
+
+                    {% if pending_payment.is_submitted %}
+
+                        <!-- Submitted State -->
+
+                        <div class="text-center py-4">
+
+                            <div class="w-12 h-12 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto mb-3">
+
+                                <svg
+                                    class="w-6 h-6"
+                                    fill="currentColor"
+                                    viewBox="0 0 20 20"
+                                >
+                                    <path
+                                        fill-rule="evenodd"
+                                        d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                        clip-rule="evenodd"
+                                    ></path>
+                                </svg>
+
+                            </div>
+
+
+                            <h4 class="text-base font-bold text-slate-900">
+                                Payment Proof Submitted
+                            </h4>
+
+
+                            <p class="text-xs text-slate-500 mt-1">
+
+                                Submitted UTR:
+
+                                <strong class="font-mono text-slate-800">
+                                    {{ pending_payment.utr_number }}
+                                </strong>
+
+                            </p>
+
+
+                            <p class="text-xs text-slate-500 mt-0.5">
+
+                                Submitted at:
+                                {{ pending_payment.submitted_at|date:"d M Y, h:i A" }}
+
+                            </p>
+
+
+                            <div class="mt-4 p-3 bg-blue-50 border border-blue-100 rounded-lg text-xs text-blue-700 text-left">
+
+                                ℹ️ Your seat
+                                <strong>
+                                    #{{ active_booking.seat.number }}
+                                </strong>
+                                remains reserved.
+
+                                The library owner will verify your UTR against bank records and activate your 30-day membership.
+
+                            </div>
+
+                        </div>
+
+
+                    {% elif active_booking.is_hold_expired %}
+
+                        <!-- Server-rendered expired state -->
+
+                        <div
+                            id="hold-expired-panel"
+                            class="text-center py-6"
+                        >
+
+                            <div class="w-14 h-14 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center mx-auto mb-3 text-2xl font-bold">
+                                ⏱️
+                            </div>
+
+
+                            <h4 class="text-base sm:text-lg font-bold text-slate-900 mb-1">
+                                Your 30-Minute Seat Hold Has Expired
+                            </h4>
+
+
+                            <p class="text-xs text-slate-600 mb-2">
+
+                                Seat #{{ active_booking.seat.number }}
+                                is no longer reserved for you.
+
+                            </p>
+
+
+                            <p class="text-xs text-slate-500 mb-5 leading-relaxed">
+
+                                The 30-minute payment window elapsed before payment details were submitted.
+
+                                Please book a new seat to proceed.
+
+                            </p>
+
+
+                            <form
+                                method="POST"
+                                action="{% url 'portal:book_seat' %}"
+                            >
+
+                                {% csrf_token %}
+
+                                <button
+                                    type="submit"
+                                    class="inline-flex items-center justify-center w-full py-2.5 px-4 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm rounded-lg shadow-sm transition-colors"
+                                >
+                                    Book Another Seat
+                                </button>
+
+                            </form>
+
+                        </div>
+
+
+                    {% elif payment_form and pending_payment %}
+
+                        <!-- Active Payment Form -->
+
+                        <div id="payment-form-panel">
+
+                            <h4 class="text-base font-bold text-slate-900 mb-1">
+                                Submit Payment Details
+                            </h4>
+
+
+                            <p class="text-xs text-slate-500 mb-4">
+                                Enter your transaction reference number to preserve your seat hold.
+                            </p>
+
+
+                            <form
+                                id="payment-proof-form"
+                                method="POST"
+                                action="{% url 'portal:submit_payment' pending_payment.id %}"
+                                enctype="multipart/form-data"
+                                class="space-y-4"
+                                novalidate
+                            >
+
+                                {% csrf_token %}
+
+
+                                <!-- UTR -->
+
+                                <div>
+
+                                    <label
+                                        for="{{ payment_form.utr_number.id_for_label }}"
+                                        class="block text-xs font-semibold text-slate-700 mb-1"
+                                    >
+
+                                        UPI Transaction Reference (UTR)
+
+                                        <span class="text-rose-500">
+                                            *
+                                        </span>
+
+                                    </label>
+
+
+                                    {{ payment_form.utr_number }}
+
+
+                                    {% if payment_form.utr_number.errors %}
+
+                                        <p class="mt-1 text-xs text-rose-600">
+                                            {{ payment_form.utr_number.errors.0 }}
+                                        </p>
+
+                                    {% endif %}
+
+                                </div>
+
+
+                                <!-- Screenshot -->
+
+                                <div>
+
+                                    <label
+                                        for="{{ payment_form.payment_screenshot.id_for_label }}"
+                                        class="block text-xs font-semibold text-slate-700 mb-1"
+                                    >
+
+                                        Payment Screenshot
+
+                                        <span class="text-slate-400 font-normal">
+                                            (Optional)
+                                        </span>
+
+                                    </label>
+
+
+                                    {{ payment_form.payment_screenshot }}
+
+
+                                    {% if payment_form.payment_screenshot.errors %}
+
+                                        <p class="mt-1 text-xs text-rose-600">
+                                            {{ payment_form.payment_screenshot.errors.0 }}
+                                        </p>
+
+                                    {% endif %}
+
+                                </div>
+
+
+                                <!-- Submit -->
+
+                                <button
+                                    id="submit-payment-btn"
+                                    type="submit"
+                                    class="w-full py-2.5 px-4 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm rounded-lg shadow-sm transition-colors"
+                                >
+                                    Submit Payment Proof
+                                </button>
+
+                            </form>
+
+                        </div>
+
+
+                        <!-- Dynamic expired panel -->
+
+                        <div
+                            id="hold-expired-panel"
+                            class="hidden text-center py-6"
+                        >
+
+                            <div class="w-14 h-14 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center mx-auto mb-3 text-2xl font-bold">
+                                ⏱️
+                            </div>
+
+
+                            <h4 class="text-base sm:text-lg font-bold text-slate-900 mb-1">
+                                Your 30-Minute Seat Hold Has Expired
+                            </h4>
+
+
+                            <p class="text-xs text-slate-600 mb-2">
+
+                                Seat #{{ active_booking.seat.number }}
+                                is no longer reserved for you.
+
+                            </p>
+
+
+                            <p class="text-xs text-slate-500 mb-5 leading-relaxed">
+
+                                The 30-minute payment window elapsed before payment details were submitted.
+
+                                Please book a new seat to proceed.
+
+                            </p>
+
+
+                            <form
+                                method="POST"
+                                action="{% url 'portal:book_seat' %}"
+                            >
+
+                                {% csrf_token %}
+
+                                <button
+                                    type="submit"
+                                    class="inline-flex items-center justify-center w-full py-2.5 px-4 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm rounded-lg shadow-sm transition-colors"
+                                >
+                                    Book Another Seat
+                                </button>
+
+                            </form>
+
+                        </div>
+
+                    {% endif %}
+
+                </div>
+
+            </div>
+
+        </div>
+
+    {% endif %}
+
+
+    <!-- =========================================================
+         KEY METRICS
+    ========================================================== -->
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+
+
+        <!-- Seat -->
+
+        <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+
+            <p class="text-xs font-medium uppercase text-slate-500 tracking-wider mb-1">
+                Assigned Study Seat
+            </p>
+
+
+            {% if active_booking %}
+
+                <div class="flex items-baseline gap-2">
+
+                    <span class="text-3xl font-extrabold text-slate-900">
+                        Seat #{{ active_booking.seat.number }}
+                    </span>
+
+                    <span class="text-xs text-emerald-600 font-semibold">
+                        AC Hall
+                    </span>
+
+                </div>
+
+
+                <p class="text-xs text-slate-500 mt-1">
+                    Dedicated desk with power socket
+                </p>
+
+            {% else %}
+
+                <div class="text-xl font-bold text-slate-400">
+                    None Allocated
+                </div>
+
+                <p class="text-xs text-slate-500 mt-1">
+                    {{ available_seats_count }} seats currently available
+                </p>
+
+            {% endif %}
+
+        </div>
+
+
+        <!-- Membership -->
+
+        <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+
+            <p class="text-xs font-medium uppercase text-slate-500 tracking-wider mb-1">
+                Membership State
+            </p>
+
+
+            {% if active_booking %}
+
+                <div class="text-xl font-bold text-slate-900">
+                    {{ active_booking.get_status_display }}
+                </div>
+
+
+                {% if active_booking.is_confirmed %}
+
+                    <p class="text-xs text-emerald-600 mt-1 font-medium">
+                        Valid for 30 calendar days
+                    </p>
+
+                {% elif active_booking.in_grace_period %}
+
+                    <p class="text-xs text-amber-600 mt-1 font-medium">
+                        Expires in grace window
+                    </p>
+
+                {% else %}
+
+                    <p class="text-xs text-slate-500 mt-1">
+                        Pending verification
+                    </p>
+
+                {% endif %}
+
+            {% else %}
+
+                <div class="text-xl font-bold text-slate-400">
+                    Inactive
+                </div>
+
+                <p class="text-xs text-slate-500 mt-1">
+                    Book a seat to activate membership
+                </p>
+
+            {% endif %}
+
+        </div>
+
+
+        <!-- Expiry -->
+
+        <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+
+            <p class="text-xs font-medium uppercase text-slate-500 tracking-wider mb-1">
+                Expiry Date
+            </p>
+
+
+            {% if active_booking and active_booking.membership_expires_at %}
+
+                <div class="text-xl font-bold text-slate-900">
+                    {{ active_booking.membership_expires_at|date:"d M Y" }}
+                </div>
+
+                <p class="text-xs text-slate-500 mt-1">
+                    at {{ active_booking.membership_expires_at|date:"h:i A" }}
+                </p>
+
+            {% elif active_booking and active_booking.status == 'PENDING_PAYMENT' %}
+
+                <div class="text-base font-semibold text-slate-700">
+                    Pending Start
+                </div>
+
+                <p class="text-xs text-slate-500 mt-1">
+                    Starts upon admin verification
+                </p>
+
+            {% else %}
+
+                <div class="text-xl font-bold text-slate-400">
+                    —
+                </div>
+
+                <p class="text-xs text-slate-500 mt-1">
+                    No active plan
+                </p>
+
+            {% endif %}
+
+        </div>
+
+
+        <!-- Grace -->
+
+        <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+
+            <p class="text-xs font-medium uppercase text-slate-500 tracking-wider mb-1">
+                Grace Period (48h)
+            </p>
+
+
+            {% if active_booking and active_booking.grace_until %}
+
+                <div class="text-base font-bold text-slate-900">
+                    Until {{ active_booking.grace_until|date:"d M Y, h:i A" }}
+                </div>
+
+                <p class="text-xs text-slate-500 mt-1">
+                    48-hour renewal preservation
+                </p>
+
+            {% else %}
+
+                <div class="text-xl font-bold text-slate-400">
+                    —
+                </div>
+
+                <p class="text-xs text-slate-500 mt-1">
+                    Applicable post-expiry
+                </p>
+
+            {% endif %}
+
+        </div>
+
+    </div>
+
+
+    <!-- =========================================================
+         BOOK SEAT CTA
+    ========================================================== -->
+
+    {% if not active_booking %}
+
+        <div class="bg-gradient-to-br from-slate-900 to-emerald-950 rounded-2xl p-8 text-white shadow-md mb-8 border border-emerald-900/50">
+
+            <div class="max-w-2xl">
+
+                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 text-xs font-semibold mb-3 border border-emerald-500/30">
+
+                    <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+
+                    {{ available_seats_count }} of {{ total_seats }} Seats Available
+
+                </div>
+
+
+                <h3 class="text-2xl font-bold tracking-tight mb-2">
+                    Ready to book your study seat?
+                </h3>
+
+
+                <p class="text-sm text-slate-300 mb-6 leading-relaxed">
+
+                    Our system assigns a dedicated AC study seat with an individual power charging socket for
+
+                    ₹{{ seat_fee }}
+
+                    (30-day validity).
+
+                </p>
+
+
+                <form
+                    method="POST"
+                    action="{% url 'portal:book_seat' %}"
+                >
+
+                    {% csrf_token %}
+
+                    <button
+                        type="submit"
+                        class="px-6 py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-sm rounded-xl shadow-lg transition-all transform hover:-translate-y-0.5"
+                    >
+
+                        Book My Seat
+                        (₹{{ seat_fee }} / 30 Days)
+
+                    </button>
+
+                </form>
+
+            </div>
+
+        </div>
+
+    {% endif %}
+
+
+    <!-- =========================================================
+         QUICK PORTAL LINKS
+    ========================================================== -->
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+
+
+        <!-- Profile -->
+
+        <a
+            href="{% url 'portal:profile' %}"
+            class="group bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:border-emerald-500 hover:shadow-md transition-all"
+        >
+
+            <div class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold text-lg mb-3 group-hover:bg-emerald-600 group-hover:text-white transition-colors">
+                👤
+            </div>
+
+            <h4 class="text-base font-bold text-slate-900 mb-1">
+                My Profile & KYC
+            </h4>
+
+            <p class="text-xs text-slate-500">
+                View and update your personal details, emergency contacts, and KYC ID.
+            </p>
+
+        </a>
+
+
+        <!-- History -->
+
+        <a
+            href="{% url 'portal:history' %}"
+            class="group bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:border-emerald-500 hover:shadow-md transition-all"
+        >
+
+            <div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-lg mb-3 group-hover:bg-blue-600 group-hover:text-white transition-colors">
+                🧾
+            </div>
+
+            <h4 class="text-base font-bold text-slate-900 mb-1">
+                Receipts & History
+            </h4>
+
+            <p class="text-xs text-slate-500">
+                Access official sequential payment receipts and past seat allocations.
+            </p>
+
+        </a>
+
+
+        <!-- Complaints -->
+
+        <a
+            href="{% url 'portal:complaints' %}"
+            class="group bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:border-emerald-500 hover:shadow-md transition-all"
+        >
+
+            <div class="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center font-bold text-lg mb-3 group-hover:bg-amber-600 group-hover:text-white transition-colors">
+                🛠️
+            </div>
+
+            <h4 class="text-base font-bold text-slate-900 mb-1">
+                Desk & Facility Issues
+            </h4>
+
+            <p class="text-xs text-slate-500">
+                Lodge tickets for desk lights, power socket issues, or AC cooling.
+            </p>
+
+        </a>
+
+
+        <!-- Feedback -->
+
+        <a
+            href="{% url 'portal:feedback' %}"
+            class="group bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:border-emerald-500 hover:shadow-md transition-all"
+        >
+
+            <div class="w-10 h-10 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center font-bold text-lg mb-3 group-hover:bg-purple-600 group-hover:text-white transition-colors">
+                ⭐
+            </div>
+
+            <h4 class="text-base font-bold text-slate-900 mb-1">
+                Share Feedback
+            </h4>
+
+            <p class="text-xs text-slate-500">
+                Rate library facilities and help us improve your study experience.
+            </p>
+
+        </a>
+
+    </div>
+
+</div>
+
+
+    <!-- =========================================================
+         UPI QR CODE MODAL
+    ========================================================== -->
+
+    {% if upi_qr_url %}
+
+        <div
+            id="upi-qr-modal"
+            class="hidden fixed inset-0 z-[100] items-center justify-center p-4"
+            aria-hidden="true"
+        >
+
+            <!-- Backdrop -->
+            <div
+                id="upi-qr-modal-backdrop"
+                class="absolute inset-0 bg-slate-950/70 backdrop-blur-sm"
+            ></div>
+
+            <!-- Modal -->
+            <div
+                id="upi-qr-modal-panel"
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="upi-qr-modal-title"
+                class="relative w-full max-w-md bg-white rounded-2xl shadow-2xl p-6 sm:p-7 text-slate-900"
+            >
+
+                <div class="flex items-start justify-between gap-4 mb-5">
+
+                    <div>
+                        <h3
+                            id="upi-qr-modal-title"
+                            class="text-xl font-bold text-slate-900"
+                        >
+                            Pay ₹{{ seat_fee }}.00
+                        </h3>
+
+                        <p class="text-sm text-slate-500 mt-1">
+                            Scan the QR code using any UPI app.
+                        </p>
+                    </div>
+
+                    <button
+                        type="button"
+                        id="close-qr-modal-btn"
+                        aria-label="Close payment QR code"
+                        class="shrink-0 w-9 h-9 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center text-xl leading-none transition-colors"
+                    >
+                        &times;
+                    </button>
+
+                </div>
+
+
+                <div class="flex justify-center">
+
+                    <div class="bg-white border border-slate-200 rounded-2xl p-3 shadow-sm">
+
+                        <img
+                            src="{{ upi_qr_url }}"
+                            alt="Library UPI QR Code"
+                            style="
+                                display: block;
+                                width: 256px !important;
+                                height: 256px !important;
+                                max-width: 256px !important;
+                                max-height: 256px !important;
+                                object-fit: contain;
+                                border-radius: 8px;
+                            "
+                        >
+
+                    </div>
+
+                </div>
+
+
+                <div class="mt-5 rounded-xl bg-emerald-50 border border-emerald-100 px-4 py-3 text-center">
+
+                    <p class="text-sm font-semibold text-emerald-800">
+                        Scan & Pay ₹{{ seat_fee }}.00
+                    </p>
+
+                    <p class="text-xs text-emerald-700 mt-1">
+                        After payment, enter your UTR number below.
+                    </p>
+
+                </div>
+
+
+                {% if upi_vpa %}
+
+                    <div class="mt-4">
+
+                        <p class="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1.5">
+                            Library UPI ID
+                        </p>
+
+                        <code class="block bg-slate-50 border border-slate-200 px-3 py-2.5 rounded-lg text-slate-700 font-mono text-sm text-center select-all break-all">
+                            {{ upi_vpa }}
+                        </code>
+
+                    </div>
+
+                {% endif %}
+
+
+                <button
+                    type="button"
+                    id="modal-done-btn"
+                    class="w-full mt-5 py-2.5 px-4 bg-slate-900 hover:bg-slate-800 text-white font-semibold text-sm rounded-lg transition-colors"
+                >
+                    Done
+                </button>
+
+            </div>
+
+        </div>
+
+    {% endif %}
+
+{% endblock %}
+
+
+{% block extra_js %}
+
+<script>
+
+document.addEventListener("DOMContentLoaded", function () {
+
+    /* =========================================================
+       UPI QR CODE MODAL
+    ========================================================== */
+
+    const openQrModalButton =
+        document.getElementById("open-qr-modal-btn");
+
+    const qrModal =
+        document.getElementById("upi-qr-modal");
+
+    const qrModalBackdrop =
+        document.getElementById("upi-qr-modal-backdrop");
+
+    const closeQrModalButton =
+        document.getElementById("close-qr-modal-btn");
+
+    const modalDoneButton =
+        document.getElementById("modal-done-btn");
+
+
+    function openQrModal() {
+
+        if (!qrModal) {
+            return;
+        }
+
+        qrModal.classList.remove("hidden");
+        qrModal.classList.add("flex");
+        qrModal.setAttribute("aria-hidden", "false");
+
+        document.body.classList.add("overflow-hidden");
+
+        if (closeQrModalButton) {
+            closeQrModalButton.focus();
+        }
+    }
+
+
+    function closeQrModal() {
+
+        if (!qrModal) {
+            return;
+        }
+
+        qrModal.classList.add("hidden");
+        qrModal.classList.remove("flex");
+        qrModal.setAttribute("aria-hidden", "true");
+
+        document.body.classList.remove("overflow-hidden");
+
+        if (openQrModalButton) {
+            openQrModalButton.focus();
+        }
+    }
+
+
+    if (openQrModalButton) {
+        openQrModalButton.addEventListener(
+            "click",
+            openQrModal
+        );
+    }
+
+
+    if (closeQrModalButton) {
+        closeQrModalButton.addEventListener(
+            "click",
+            closeQrModal
+        );
+    }
+
+
+    if (modalDoneButton) {
+        modalDoneButton.addEventListener(
+            "click",
+            closeQrModal
+        );
+    }
+
+
+    if (qrModalBackdrop) {
+        qrModalBackdrop.addEventListener(
+            "click",
+            closeQrModal
+        );
+    }
+
+
+    document.addEventListener(
+        "keydown",
+        function (event) {
+
+            if (
+                event.key === "Escape" &&
+                qrModal &&
+                !qrModal.classList.contains("hidden")
+            ) {
+                closeQrModal();
+            }
+
+        }
+    );
+
+
+    /* =========================================================
+       COPY UPI ID
+    ========================================================== */
+
+    const copyUpiButton =
+        document.getElementById("copy-upi-btn");
+
+    if (copyUpiButton) {
+
+        copyUpiButton.addEventListener(
+            "click",
+            async function () {
+
+                const upiElement =
+                    document.querySelector(
+                        "code.select-all"
+                    );
+
+                if (!upiElement) {
+                    return;
+                }
+
+                const upiValue =
+                    upiElement.innerText.trim();
+
+                try {
+
+                    await navigator.clipboard.writeText(
+                        upiValue
+                    );
+
+                    const originalText =
+                        copyUpiButton.innerText;
+
+                    copyUpiButton.innerText =
+                        "Copied!";
+
+                    setTimeout(
+                        function () {
+                            copyUpiButton.innerText =
+                                originalText;
+                        },
+                        1500
+                    );
+
+                } catch (error) {
+
+                    /*
+                     * Clipboard API may be unavailable
+                     * on some browsers / insecure contexts.
+                     *
+                     * The UPI ID remains selectable manually.
+                     */
+
+                    copyUpiButton.innerText =
+                        "Select & Copy";
+
+                    setTimeout(
+                        function () {
+                            copyUpiButton.innerText =
+                                "Copy";
+                        },
+                        1500
+                    );
+                }
+
+            }
+        );
+
+    }
+
+
+    /* =========================================================
+       LIVE AUTHORITATIVE COUNTDOWN TIMER
+       Uses server-provided hold_expires_at.
+    ========================================================== */
+
+    const timerElement =
+        document.getElementById(
+            "countdown-timer"
+        );
+
+    const statusElement =
+        document.getElementById(
+            "countdown-status"
+        );
+
+    const formPanel =
+        document.getElementById(
+            "payment-form-panel"
+        );
+
+    const expiredPanel =
+        document.getElementById(
+            "hold-expired-panel"
+        );
+
+    const paymentForm =
+        document.getElementById(
+            "payment-proof-form"
+        );
+
+    const submitBtn =
+        document.getElementById(
+            "submit-payment-btn"
+        );
+
+    const bannerStatusBadge =
+        document.getElementById(
+            "seat-hold-badge"
+        );
+
+    const holdTitle =
+        document.getElementById(
+            "seat-hold-title"
+        );
+
+    const holdSubtitle =
+        document.getElementById(
+            "seat-hold-subtitle"
+        );
+
+
+    /*
+     * If this is not a booking/payment page,
+     * there is no countdown to run.
+     */
+
+    if (!timerElement) {
+        return;
+    }
+
+
+    const expiresIso =
+        timerElement.getAttribute(
+            "data-expires"
+        );
+
+    if (!expiresIso) {
+        return;
+    }
+
+
+    const expiryTime =
+        new Date(expiresIso).getTime();
+
+
+    /* =========================================================
+       TRANSITION TO EXPIRED STATE
+    ========================================================== */
+
+    function transitionToHoldExpired() {
+
+        timerElement.innerText =
+            "00:00";
+
+        timerElement.classList.remove(
+            "text-amber-400"
+        );
+
+        timerElement.classList.add(
+            "text-rose-400"
+        );
+
+
+        if (statusElement) {
+
+            statusElement.innerText =
+                "Your 30-minute seat hold has expired.";
+
+        }
+
+
+        if (bannerStatusBadge) {
+
+            bannerStatusBadge.innerHTML =
+                '<span class="w-2 h-2 rounded-full bg-rose-400"></span> Hold Expired';
+
+            bannerStatusBadge.className =
+                "inline-flex items-center gap-2 px-3 py-1 rounded-full bg-rose-500/20 text-rose-300 text-xs font-semibold mb-2 border border-rose-400/30";
+
+        }
+
+
+        if (holdTitle) {
+
+            holdTitle.innerText =
+                "Your Seat Hold Has Expired";
+
+        }
+
+
+        if (holdSubtitle) {
+
+            holdSubtitle.innerHTML =
+                'The 30-minute allocation window has elapsed. Please select "Book Another Seat" to obtain a new seat.';
+
+        }
+
+
+        /*
+         * Disable payment form after expiry.
+         */
+
+        if (paymentForm) {
+
+            const inputs =
+                paymentForm.querySelectorAll(
+                    "input, button, select, textarea"
+                );
+
+            inputs.forEach(
+                function (element) {
+                    element.disabled = true;
+                }
+            );
+
+        }
+
+
+        if (submitBtn) {
+
+            submitBtn.disabled = true;
+
+            submitBtn.classList.add(
+                "opacity-50",
+                "cursor-not-allowed"
+            );
+
+        }
+
+
+        /*
+         * Replace payment form
+         * with expired message.
+         */
+
+        if (formPanel) {
+
+            formPanel.classList.add(
+                "hidden"
+            );
+
+        }
+
+
+        if (expiredPanel) {
+
+            expiredPanel.classList.remove(
+                "hidden"
+            );
+
+        }
+
+    }
+
+
+    /* =========================================================
+       UPDATE COUNTDOWN
+    ========================================================== */
+
+    function updateCountdown() {
+
+        const now =
+            new Date().getTime();
+
+        const distance =
+            expiryTime - now;
+
+
+        if (distance <= 0) {
+
+            transitionToHoldExpired();
+
+            return;
+
+        }
+
+
+        const minutes =
+            Math.floor(
+                (
+                    distance %
+                    (1000 * 60 * 60)
+                ) /
+                (1000 * 60)
+            );
+
+
+        const seconds =
+            Math.floor(
+                (
+                    distance %
+                    (1000 * 60)
+                ) /
+                1000
+            );
+
+
+        const displayMin =
+            minutes < 10
+                ? "0" + minutes
+                : minutes;
+
+
+        const displaySec =
+            seconds < 10
+                ? "0" + seconds
+                : seconds;
+
+
+        timerElement.innerText =
+            displayMin +
+            ":" +
+            displaySec;
+
+    }
+
+
+    /* Initial update */
+
+    updateCountdown();
+
+
+    /* Update every second */
+
+    const intervalId =
+        setInterval(
+            function () {
+
+                const now =
+                    new Date().getTime();
+
+
+                if (
+                    expiryTime - now <= 0
+                ) {
+
+                    clearInterval(
+                        intervalId
+                    );
+
+                    transitionToHoldExpired();
+
+                } else {
+
+                    updateCountdown();
+
+                }
+
+            },
+            1000
+        );
+
+});
+
+</script>
+
+{% endblock %}(bhagya-laxmi-library-split) cs@DESKTOP-AECND6O:/mnt/c/Users/CS/Downloads/bhagya-laxmi-library-split/project/backend$

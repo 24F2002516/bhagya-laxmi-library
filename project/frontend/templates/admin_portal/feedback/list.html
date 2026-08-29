@@ -1,0 +1,212 @@
+{% extends "admin_portal/base.html" %}
+
+{% block title %}Feedback{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+    <div>
+        <h1>Feedback</h1>
+        <p>Review student feedback about the library.</p>
+    </div>
+</div>
+
+
+<div class="stats-grid">
+
+    <div class="stat-card">
+        <span>Total Feedback</span>
+        <strong>{{ counts.total }}</strong>
+    </div>
+
+    <div class="stat-card">
+        <span>Unreviewed</span>
+        <strong>{{ counts.unreviewed }}</strong>
+    </div>
+
+    <div class="stat-card">
+        <span>Reviewed</span>
+        <strong>{{ counts.reviewed }}</strong>
+    </div>
+
+</div>
+
+
+<div class="filter-bar">
+
+    <form method="get"
+          style="
+              display:flex;
+              gap:12px;
+              width:100%;
+              align-items:center;
+              flex-wrap:wrap;
+          ">
+
+        <input
+            type="text"
+            name="q"
+            value="{{ search }}"
+            placeholder="Search student or feedback..."
+            style="
+                flex:1;
+                min-width:250px;
+                padding:12px 14px;
+                border:1px solid #d1d5db;
+                border-radius:10px;
+            "
+        >
+
+        <select
+            name="status"
+            style="
+                padding:12px 14px;
+                border:1px solid #d1d5db;
+                border-radius:10px;
+                background:white;
+            "
+        >
+            <option value="ALL"
+                {% if status == "ALL" %}selected{% endif %}>
+                All Feedback
+            </option>
+
+            <option value="UNREVIEWED"
+                {% if status == "UNREVIEWED" %}selected{% endif %}>
+                Unreviewed
+            </option>
+
+            <option value="REVIEWED"
+                {% if status == "REVIEWED" %}selected{% endif %}>
+                Reviewed
+            </option>
+        </select>
+
+        <button
+            type="submit"
+            class="maintenance-submit"
+        >
+            Search
+        </button>
+
+    </form>
+
+</div>
+
+
+<div class="detail-card">
+
+    {% for feedback in feedbacks %}
+
+        <div style="
+            padding:18px 0;
+            border-bottom:1px solid #e5e7eb;
+        ">
+
+            <div style="
+                display:flex;
+                justify-content:space-between;
+                align-items:flex-start;
+                gap:20px;
+            ">
+
+                <div>
+
+                    <strong style="font-size:16px;">
+                        {{ feedback.student.student_profile.full_name|default:feedback.student.email }}
+                    </strong>
+
+                    <p style="
+                        margin:4px 0;
+                        color:#6b7280;
+                    ">
+                        {{ feedback.student.email }}
+                    </p>
+
+                    <div style="
+                        margin-top:8px;
+                        font-size:18px;
+                        letter-spacing:2px;
+                    ">
+                        {% for i in "12345" %}
+                            {% if forloop.counter <= feedback.rating %}
+                                ★
+                            {% else %}
+                                ☆
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+
+                </div>
+
+                {% if feedback.is_reviewed %}
+
+                    <span
+                        style="
+                            background:#dcfce7;
+                            color:#166534;
+                            padding:6px 10px;
+                            border-radius:999px;
+                            font-size:13px;
+                            font-weight:600;
+                        "
+                    >
+                        Reviewed
+                    </span>
+
+                {% else %}
+
+                    <span
+                        style="
+                            background:#fef3c7;
+                            color:#92400e;
+                            padding:6px 10px;
+                            border-radius:999px;
+                            font-size:13px;
+                            font-weight:600;
+                        "
+                    >
+                        Unreviewed
+                    </span>
+
+                {% endif %}
+
+            </div>
+
+
+            <div style="
+                margin-top:12px;
+                display:flex;
+                justify-content:space-between;
+                align-items:center;
+                gap:15px;
+            ">
+
+                <span style="color:#6b7280;">
+                    {{ feedback.get_category_display }}
+                    ·
+                    {{ feedback.created_at|date:"d M Y" }}
+                </span>
+
+                <a
+                    href="{% url 'admin_portal:feedback_detail' feedback.id %}"
+                    class="back-link"
+                >
+                    View →
+                </a>
+
+            </div>
+
+        </div>
+
+    {% empty %}
+
+        <p style="color:#6b7280;">
+            No feedback found.
+        </p>
+
+    {% endfor %}
+
+</div>
+
+{% endblock %}

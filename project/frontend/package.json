@@ -1,0 +1,13 @@
+{
+  "name": "bhagya-laxmi-library",
+  "version": "1.0.0",
+  "description": "Bhagya Laxmi Library study-seat booking and reading-room management application",
+  "private": true,
+  "scripts": {
+    "build:css": "npx tailwindcss -i ./static/css/input.css -o ./static/css/output.css --minify",
+    "watch:css": "npx tailwindcss -i ./static/css/input.css -o ./static/css/output.css --watch"
+  },
+  "devDependencies": {
+    "tailwindcss": "^3.4.17"
+  }
+}

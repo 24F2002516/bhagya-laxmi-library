@@ -1,0 +1,1067 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>
+        {% block title %}Admin Portal{% endblock %}
+        | Bhagya Laxmi Library
+    </title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    {% block extra_head %}{% endblock %}
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family:
+                Inter,
+                ui-sans-serif,
+                system-ui,
+                -apple-system,
+                BlinkMacSystemFont,
+                "Segoe UI",
+                sans-serif;
+            background: #f3f4f6;
+            color: #111827;
+        }
+
+        /* ==============================
+           STATISTICS
+        ============================== */
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .stat-card {
+            background: #ffffff;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+        }
+
+        .stat-card span {
+            display: block;
+            color: #6b7280;
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+
+        .stat-card strong {
+            display: block;
+            font-size: 28px;
+            line-height: 1;
+            color: #111827;
+        }
+
+
+        /* ==============================
+           FILTERS
+        ============================== */
+
+        .filter-bar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 24px;
+        }
+
+        .filter-bar a {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 9px 15px;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            background: #ffffff;
+            color: #111827;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .filter-bar a:hover {
+            background: #f9fafb;
+            border-color: #d1d5db;
+        }
+
+
+        /* ==============================
+           SEATS
+        ============================== */
+
+        .seat-grid {
+            display: grid;
+            grid-template-columns: repeat(10, minmax(70px, 1fr));
+            gap: 12px;
+        }
+
+        .seat-card {
+            display: block;
+            min-height: 90px;
+            padding: 12px;
+            border: 2px solid #e5e7eb;
+            border-radius: 10px;
+            background: #ffffff;
+            color: #111827;
+            text-decoration: none;
+            transition: all 0.15s ease;
+        }
+
+        .seat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 14px rgba(0, 0, 0, 0.07);
+        }
+
+        .seat-number {
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        .seat-status {
+            margin-top: 6px;
+            font-size: 12px;
+            color: #374151;
+        }
+
+        .seat-student {
+            margin-top: 5px;
+            font-size: 10px;
+            color: #6b7280;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .seat-available {
+            border-color: #86efac;
+        }
+
+        .seat-held {
+            border-color: #facc15;
+        }
+
+        .seat-booked {
+            border-color: #f87171;
+        }
+
+        .seat-maintenance {
+            border-color: #60a5fa;
+        }
+
+
+        /* ==============================
+           DETAIL CARDS
+        ============================== */
+
+        .detail-card {
+            background: #ffffff;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 20px;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+        }
+
+        .detail-card h2 {
+            margin: 0 0 18px;
+            font-size: 18px;
+            font-weight: 600;
+            color: #111827;
+        }
+
+
+        /* ==============================
+           BACK LINK
+        ============================== */
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 18px;
+            color: #374151;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .back-link:hover {
+            color: #059669;
+        }
+
+
+        /* ==============================
+           MAINTENANCE
+        ============================== */
+
+        .maintenance-form {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            width: 100%;
+        }
+
+        .maintenance-form label {
+            display: block;
+            margin-bottom: 8px;
+            color: #374151;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .detail-card textarea {
+            display: block;
+            width: 100%;
+            max-width: 750px;
+            min-height: 130px;
+            margin: 0 0 16px;
+            padding: 12px 14px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            background: #ffffff;
+            color: #111827;
+            font-size: 14px;
+            line-height: 1.5;
+            resize: vertical;
+            outline: none;
+            transition: all 0.15s ease;
+        }
+
+        .detail-card textarea:focus {
+            border-color: #10b981;
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.12);
+        }
+
+        .detail-card textarea::placeholder {
+            color: #9ca3af;
+        }
+
+
+        /* ==============================
+           MAINTENANCE BUTTONS
+        ============================== */
+
+        .maintenance-submit,
+        .maintenance-resolve {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 40px;
+            padding: 10px 18px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        .maintenance-submit {
+            background: #111827;
+            color: #ffffff;
+        }
+
+        .maintenance-submit:hover {
+            background: #1f2937;
+            transform: translateY(-1px);
+        }
+
+        .maintenance-resolve {
+            background: #059669;
+            color: #ffffff;
+        }
+
+        .maintenance-resolve:hover {
+            background: #047857;
+            transform: translateY(-1px);
+        }
+
+
+        /* ==============================
+           MAINTENANCE STATUS
+        ============================== */
+
+        .maintenance-status {
+            display: inline-flex;
+            align-items: center;
+            padding: 5px 10px;
+            border-radius: 999px;
+            background: #fef3c7;
+            color: #92400e;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .maintenance-log {
+            padding: 16px 0;
+            border-top: 1px solid #e5e7eb;
+        }
+
+        .maintenance-log:first-child {
+            border-top: none;
+        }
+
+
+        /* ==============================
+           PAGE HEADER
+        ============================== */
+
+        .page-header {
+            margin-bottom: 24px;
+        }
+
+        .page-header h1 {
+            margin: 0;
+            font-size: 28px;
+            line-height: 1.2;
+            font-weight: 700;
+            color: #111827;
+        }
+
+        .page-header p {
+            margin: 6px 0 0;
+            color: #6b7280;
+            font-size: 14px;
+        }
+
+
+        /* ==============================
+           RESPONSIVE
+        ============================== */
+
+        @media (max-width: 1200px) {
+
+            .stats-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+
+            .seat-grid {
+                grid-template-columns: repeat(8, minmax(70px, 1fr));
+            }
+        }
+
+        @media (max-width: 900px) {
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .seat-grid {
+                grid-template-columns: repeat(5, 1fr);
+            }
+        }
+
+        @media (max-width: 600px) {
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .seat-grid {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 8px;
+            }
+
+            .seat-card {
+                min-height: 80px;
+                padding: 10px;
+            }
+
+            .seat-number {
+                font-size: 18px;
+            }
+
+            .detail-card {
+                padding: 18px;
+            }
+
+            .page-header h1 {
+                font-size: 24px;
+            }
+        }
+
+
+        /* ==============================
+           SHARED BUTTON SYSTEM
+           (usable across all admin pages)
+        ============================== */
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            min-height: 42px;
+            padding: 10px 20px;
+            border-radius: 10px;
+            border: 1px solid transparent;
+            font-size: 14px;
+            font-weight: 600;
+            line-height: 1;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.15s ease;
+            white-space: nowrap;
+        }
+
+        .btn:active {
+            transform: translateY(1px);
+        }
+
+        .btn-primary {
+            background: #059669;
+            color: #ffffff;
+            box-shadow: 0 1px 2px rgba(5, 150, 105, 0.15);
+        }
+
+        .btn-primary:hover {
+            background: #047857;
+        }
+
+        .btn-dark {
+            background: #111827;
+            color: #ffffff;
+        }
+
+        .btn-dark:hover {
+            background: #1f2937;
+        }
+
+        .btn-outline {
+            background: #ffffff;
+            color: #111827;
+            border-color: #e5e7eb;
+        }
+
+        .btn-outline:hover {
+            background: #f9fafb;
+            border-color: #d1d5db;
+        }
+
+        .btn-danger {
+            background: #fef2f2;
+            color: #b91c1c;
+            border-color: #fecaca;
+        }
+
+        .btn-danger:hover {
+            background: #fee2e2;
+        }
+
+        .btn-sm {
+            min-height: 34px;
+            padding: 7px 14px;
+            font-size: 12.5px;
+            border-radius: 8px;
+        }
+
+        .btn-block {
+            width: 100%;
+        }
+
+
+        /* ==============================
+           SIDEBAR NAVIGATION
+        ============================== */
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 11px;
+            padding: 10px 14px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 500;
+            color: #374151;
+            text-decoration: none;
+            transition: background 0.15s ease, color 0.15s ease;
+        }
+
+        .nav-link svg {
+            flex-shrink: 0;
+            width: 18px;
+            height: 18px;
+            opacity: 0.75;
+        }
+
+        .nav-link:hover {
+            background: #f3f4f6;
+            color: #111827;
+        }
+
+        .nav-link.active {
+            background: #ecfdf5;
+            color: #047857;
+            font-weight: 600;
+        }
+
+        .nav-link.active svg {
+            opacity: 1;
+        }
+
+
+        /* ==============================
+           TOPBAR USER MENU
+        ============================== */
+
+        .avatar-circle {
+            width: 36px;
+            height: 36px;
+            border-radius: 999px;
+            background: linear-gradient(135deg, #059669, #10b981);
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+
+        #user-menu-dropdown {
+            display: none;
+            position: absolute;
+            right: 0;
+            top: calc(100% + 8px);
+            min-width: 220px;
+            background: #ffffff;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+            padding: 6px;
+            z-index: 40;
+        }
+
+        #user-menu-dropdown.open {
+            display: block;
+        }
+
+        #user-menu-dropdown a,
+        #user-menu-dropdown button {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            width: 100%;
+            text-align: left;
+            padding: 9px 10px;
+            border-radius: 8px;
+            font-size: 13.5px;
+            font-weight: 500;
+            color: #374151;
+            background: none;
+            border: none;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        #user-menu-dropdown a:hover,
+        #user-menu-dropdown button:hover {
+            background: #f3f4f6;
+        }
+
+        #user-menu-dropdown .menu-danger {
+            color: #b91c1c;
+        }
+
+        #user-menu-dropdown .menu-divider {
+            height: 1px;
+            background: #e5e7eb;
+            margin: 6px 4px;
+        }
+
+
+        /* ==============================
+           FLASH MESSAGES
+        ============================== */
+
+        .admin-alert {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 13px 16px;
+            border-radius: 10px;
+            border: 1px solid;
+            font-size: 13.5px;
+            font-weight: 500;
+        }
+
+        .admin-alert.success { background: #ecfdf5; border-color: #a7f3d0; color: #065f46; }
+        .admin-alert.error   { background: #fef2f2; border-color: #fecaca; color: #991b1b; }
+        .admin-alert.warning { background: #fffbeb; border-color: #fde68a; color: #92400e; }
+        .admin-alert.info    { background: #eff6ff; border-color: #bfdbfe; color: #1e40af; }
+
+        .admin-alert button {
+            background: none;
+            border: none;
+            font-size: 16px;
+            line-height: 1;
+            color: inherit;
+            opacity: 0.6;
+            cursor: pointer;
+        }
+
+        .admin-alert button:hover {
+            opacity: 1;
+        }
+    </style>
+</head>
+
+
+<body class="min-h-screen bg-gray-100 text-gray-900">
+
+<div class="min-h-screen flex">
+
+
+    <!-- ==========================================
+         SIDEBAR
+    =========================================== -->
+
+    <aside
+        id="admin-sidebar"
+        class="hidden md:flex w-64 bg-white border-r border-gray-200 flex-col"
+    >
+
+        <!-- BRAND -->
+
+        <div class="px-6 py-5 border-b border-gray-200 flex items-center gap-3">
+
+            <div class="w-10 h-10 rounded-xl bg-gray-950 text-white flex items-center justify-center font-bold text-sm shadow-sm">
+                BL
+            </div>
+
+            <div>
+                <h1 class="text-base font-bold text-gray-900 leading-tight">
+                    Bhagya Laxmi
+                </h1>
+
+                <p class="text-xs text-gray-500">
+                    Admin Portal
+                </p>
+            </div>
+
+        </div>
+
+
+        <!-- NAVIGATION -->
+
+        <nav class="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
+
+            {% block navigation %}
+
+            <a
+                href="{% url 'admin_portal:dashboard' %}"
+                class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}"
+            >
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
+                Dashboard
+            </a>
+
+
+            <div class="px-3 pt-5 pb-2 text-xs font-semibold uppercase tracking-wider text-gray-400">
+                Management
+            </div>
+
+
+            <a
+                href="{% url 'admin_portal:payments' %}"
+                class="nav-link {% if request.resolver_match.url_name == 'payments' or request.resolver_match.url_name == 'payment_detail' %}active{% endif %}"
+            >
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                Payments
+            </a>
+
+
+            <a
+                href="{% url 'admin_portal:seats' %}"
+                class="nav-link {% if request.resolver_match.url_name == 'seats' or request.resolver_match.url_name == 'seat_detail' %}active{% endif %}"
+            >
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 6a2 2 0 00-2 2v7a2 2 0 002 2h1m15-11a2 2 0 012 2v7a2 2 0 01-2 2h-1M9 6v11m6-11v11M5 17v3m14-3v3"></path></svg>
+                Seats
+            </a>
+
+
+            <a
+                href="{% url 'admin_portal:students' %}"
+                class="nav-link {% if request.resolver_match.url_name == 'students' or request.resolver_match.url_name == 'student_detail' %}active{% endif %}"
+            >
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a4 4 0 00-3-3.87M9 20H4v-2a4 4 0 013-3.87m6-1.13a4 4 0 10-4-4 4 4 0 004 4zm6 0a4 4 0 10-4-4"></path></svg>
+                Students
+            </a>
+
+
+            <a
+                href="{% url 'admin_portal:bookings' %}"
+                class="nav-link {% if request.resolver_match.url_name == 'bookings' or request.resolver_match.url_name == 'booking_detail' %}active{% endif %}"
+            >
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                Bookings
+            </a>
+
+
+            <div class="px-3 pt-5 pb-2 text-xs font-semibold uppercase tracking-wider text-gray-400">
+                Support
+            </div>
+
+
+            <a
+                href="{% url 'admin_portal:complaints' %}"
+                class="nav-link {% if request.resolver_match.url_name == 'complaints' or request.resolver_match.url_name == 'complaint_detail' %}active{% endif %}"
+            >
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                Complaints
+            </a>
+
+
+            <a
+                href="{% url 'admin_portal:feedback' %}"
+                class="nav-link {% if request.resolver_match.url_name == 'feedback' or request.resolver_match.url_name == 'feedback_detail' %}active{% endif %}"
+            >
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8-1.06 0-2.076-.164-3.016-.465L3 21l1.395-4.185C3.512 15.42 3 13.775 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg>
+                Feedback
+            </a>
+
+
+            <div class="px-3 pt-5 pb-2 text-xs font-semibold uppercase tracking-wider text-gray-400">
+                System
+            </div>
+
+
+            <a
+                href="{% url 'admin_portal:reports' %}"
+                class="nav-link {% if request.resolver_match.url_name == 'reports' %}active{% endif %}"
+            >
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2"></path></svg>
+                Reports
+            </a>
+
+
+            <a
+                href="{% url 'admin_portal:audit_logs' %}"
+                class="nav-link {% if request.resolver_match.url_name == 'audit_logs' %}active{% endif %}"
+            >
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                Audit Logs
+            </a>
+
+
+            <a
+                href="{% url 'admin_portal:settings' %}"
+                class="nav-link {% if request.resolver_match.url_name == 'settings' %}active{% endif %}"
+            >
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                Settings
+            </a>
+
+
+            <a
+                href="{% url 'admin_portal:change_password' %}"
+                class="nav-link {% if request.resolver_match.url_name == 'change_password' %}active{% endif %}"
+            >
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                Change Password
+            </a>
+
+            {% endblock %}
+
+        </nav>
+
+
+        <!-- USER / LOGOUT -->
+
+        <div class="p-4 border-t border-gray-200">
+
+            <div class="mb-3 px-2 flex items-center gap-3">
+
+                <div class="avatar-circle">
+                    {{ request.user.email|slice:":1"|upper }}
+                </div>
+
+                <div class="min-w-0">
+                    <p class="text-sm font-medium truncate">
+                        {{ request.user.email }}
+                    </p>
+
+                    <p class="text-xs text-gray-500">
+                        Administrator
+                    </p>
+                </div>
+
+            </div>
+
+            <a
+                href="{% url 'admin_portal:change_password' %}"
+                class="btn btn-outline btn-sm btn-block mb-2"
+            >
+                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                Change Password
+            </a>
+
+            <form
+                method="post"
+                action="{% url 'admin_portal:logout' %}"
+            >
+
+                {% csrf_token %}
+
+                <button
+                    type="submit"
+                    class="btn btn-dark btn-sm btn-block"
+                >
+                    Logout
+                </button>
+
+            </form>
+
+        </div>
+
+    </aside>
+
+
+    <!-- ==========================================
+         MAIN
+    =========================================== -->
+
+    <div class="flex-1 min-w-0">
+
+
+        <!-- TOP BAR -->
+
+        <header class="bg-white border-b border-gray-200">
+
+            <div class="px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+
+                <div class="flex items-center gap-3">
+
+                    <!-- MOBILE MENU -->
+
+                    <button
+                        type="button"
+                        class="md:hidden p-2 rounded-lg hover:bg-gray-100"
+                        aria-label="Open admin menu"
+                        aria-controls="admin-sidebar"
+                        aria-expanded="false"
+                    >
+                        <span aria-hidden="true">
+                            &#9776;
+                        </span>
+                    </button>
+
+
+                    <div>
+
+                        <p class="text-sm font-semibold">
+                            Admin Portal
+                        </p>
+
+                        <p class="text-xs text-gray-500">
+                            Bhagya Laxmi Library
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                <div class="relative flex items-center gap-3">
+
+                    <span class="hidden sm:inline px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 text-xs font-semibold">
+                        Admin
+                    </span>
+
+                    <button
+                        type="button"
+                        id="user-menu-button"
+                        aria-haspopup="true"
+                        aria-expanded="false"
+                        class="flex items-center gap-2 pl-1 pr-2 py-1 rounded-full border border-transparent hover:border-gray-200 hover:bg-gray-50 transition-colors"
+                    >
+                        <div class="avatar-circle" style="width:32px;height:32px;font-size:12px;">
+                            {{ request.user.email|slice:":1"|upper }}
+                        </div>
+                        <span class="hidden sm:inline text-sm font-medium text-gray-700 max-w-[160px] truncate">
+                            {{ request.user.email }}
+                        </span>
+                        <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                    </button>
+
+                    <div id="user-menu-dropdown">
+
+                        <div class="px-3 pt-1 pb-2">
+                            <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide">Signed in as</p>
+                            <p class="text-sm font-medium text-gray-800 truncate">{{ request.user.email }}</p>
+                        </div>
+
+                        <div class="menu-divider"></div>
+
+                        <a href="{% url 'admin_portal:change_password' %}">
+                            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                            Change Password
+                        </a>
+
+                        <a href="{% url 'admin_portal:settings' %}">
+                            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                            Settings
+                        </a>
+
+                        <div class="menu-divider"></div>
+
+                        <form method="post" action="{% url 'admin_portal:logout' %}">
+                            {% csrf_token %}
+                            <button type="submit" class="menu-danger">
+                                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+                                Logout
+                            </button>
+                        </form>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </header>
+
+
+        <!-- PAGE CONTENT -->
+
+        <main class="p-4 sm:p-6 lg:p-8">
+
+            {% block messages %}
+
+                {% if messages %}
+
+                    <div class="mb-6 space-y-2">
+
+                        {% for message in messages %}
+
+                            <div
+                                class="admin-alert
+                                {% if message.tags == 'error' %}error
+                                {% elif message.tags == 'success' %}success
+                                {% elif message.tags == 'warning' %}warning
+                                {% else %}info{% endif %}"
+                            >
+                                <span>{{ message }}</span>
+
+                                <button
+                                    type="button"
+                                    onclick="this.parentElement.remove()"
+                                    aria-label="Dismiss"
+                                >
+                                    &times;
+                                </button>
+                            </div>
+
+                        {% endfor %}
+
+                    </div>
+
+                {% endif %}
+
+            {% endblock %}
+
+
+            {% block content %}{% endblock %}
+
+        </main>
+
+    </div>
+
+</div>
+
+
+{% block extra_js %}{% endblock %}
+
+
+<!-- Reusable password show/hide toggle (used on Change Password page) -->
+<script src="{% static 'js/password-toggle.js' %}"></script>
+
+
+<!-- MOBILE MENU SCRIPT -->
+
+<script>
+
+    const menuButton =
+        document.querySelector("[aria-controls='admin-sidebar']");
+
+    const sidebar =
+        document.getElementById("admin-sidebar");
+
+
+    menuButton?.addEventListener("click", () => {
+
+        const expanded =
+            menuButton.getAttribute("aria-expanded") === "true";
+
+
+        sidebar.classList.toggle("hidden", expanded);
+        sidebar.classList.toggle("flex", !expanded);
+
+        sidebar.classList.toggle("fixed", !expanded);
+        sidebar.classList.toggle("inset-y-0", !expanded);
+        sidebar.classList.toggle("left-0", !expanded);
+        sidebar.classList.toggle("z-50", !expanded);
+
+        menuButton.setAttribute(
+            "aria-expanded",
+            String(!expanded)
+        );
+
+    });
+
+</script>
+
+
+<!-- TOPBAR USER DROPDOWN SCRIPT -->
+
+<script>
+
+    (function () {
+        const userMenuButton = document.getElementById("user-menu-button");
+        const userMenuDropdown = document.getElementById("user-menu-dropdown");
+
+        if (!userMenuButton || !userMenuDropdown) return;
+
+        function closeMenu() {
+            userMenuDropdown.classList.remove("open");
+            userMenuButton.setAttribute("aria-expanded", "false");
+        }
+
+        function toggleMenu(e) {
+            e.stopPropagation();
+            const isOpen = userMenuDropdown.classList.toggle("open");
+            userMenuButton.setAttribute("aria-expanded", String(isOpen));
+        }
+
+        userMenuButton.addEventListener("click", toggleMenu);
+
+        document.addEventListener("click", function (e) {
+            if (!userMenuDropdown.contains(e.target) && e.target !== userMenuButton) {
+                closeMenu();
+            }
+        });
+
+        document.addEventListener("keydown", function (e) {
+            if (e.key === "Escape") closeMenu();
+        });
+    })();
+
+</script>
+
+</body>
+</html>

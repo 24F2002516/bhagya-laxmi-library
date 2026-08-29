@@ -1,0 +1,305 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Bhagya Laxmi Library | Silent AC Study Hall Suratgarh{% endblock %}
+
+{% block content %}
+
+<!-- ================= HERO ================= -->
+<div class="bg-gradient-to-br from-slate-900 via-slate-800 to-emerald-950 border-b border-slate-800 relative overflow-hidden">
+    <div class="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_20%_20%,white,transparent_35%)]"></div>
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-20 relative z-10">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
+
+            <!-- Copy -->
+            <div class="lg:col-span-7">
+                <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-500/20 border border-emerald-400/30 text-emerald-300 text-xs font-semibold uppercase tracking-wider mb-5">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                    Silent Reading Hall &bull; Suratgarh, Rajasthan
+                </div>
+
+                <h1 class="text-3xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight leading-tight mb-4 text-white">
+                    BHAGYA LAXMI LIBRARY
+                </h1>
+                <p class="text-xl sm:text-2xl font-medium text-emerald-300 mb-4">
+                    A Dedicated Space for Focused Study
+                </p>
+                <p class="text-base sm:text-lg text-slate-300 mb-8 leading-relaxed max-w-xl">
+                    Quiet air-conditioned study environment engineered for serious exam preparation. Exactly 150 individual study seats with dedicated charging points, comfortable seating, and high-speed Wi-Fi connectivity.
+                </p>
+
+                <!-- Tariff & Capacity Badges -->
+                <div class="flex flex-wrap gap-4 mb-8">
+                    <div class="inline-flex items-center px-4 py-2.5 bg-slate-800/80 border border-slate-700 rounded-xl text-slate-200 text-sm font-medium">
+                        🪑 Capacity: <strong class="ml-1.5 text-white">150 Fixed AC Seats (#1–150)</strong>
+                    </div>
+                    <div class="inline-flex items-center px-4 py-2.5 bg-emerald-600/30 border border-emerald-500/40 rounded-xl text-emerald-200 text-sm font-medium">
+                        💳 Tariff: <strong class="ml-1.5 text-white">₹800 for 30 Days</strong>
+                    </div>
+                </div>
+
+                <!-- Hero CTAs -->
+                <div class="flex flex-wrap items-center gap-4">
+                    {% if user.is_authenticated %}
+                        <a href="{% url 'portal:dashboard' %}" class="px-7 py-3.5 bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold text-sm sm:text-base rounded-xl shadow-lg transition-all transform hover:-translate-y-0.5">
+                            Go to Student Portal &rarr;
+                        </a>
+                    {% else %}
+                        <a href="{% url 'accounts:register' %}" class="px-7 py-3.5 bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold text-sm sm:text-base rounded-xl shadow-lg transition-all transform hover:-translate-y-0.5">
+                            Book Your Seat
+                        </a>
+                        <a href="{% url 'accounts:login' %}" class="px-6 py-3.5 bg-slate-800/90 hover:bg-slate-700 text-white font-semibold text-sm sm:text-base rounded-xl border border-slate-600 transition-all">
+                            Student Sign In
+                        </a>
+                    {% endif %}
+                    <a href="#video-tour" class="inline-flex items-center gap-2 px-2 py-3.5 text-slate-300 hover:text-emerald-300 font-semibold text-sm sm:text-base transition-colors">
+                        <span class="w-9 h-9 rounded-full bg-white/10 border border-white/20 flex items-center justify-center">
+                            <svg class="w-4 h-4 ml-0.5" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                        </span>
+                        Watch Video Tour
+                    </a>
+                </div>
+            </div>
+
+            <!-- Hero video preview (portrait clip, muted autoplay loop) -->
+            <div class="lg:col-span-5 flex justify-center lg:justify-end">
+                <div class="relative w-56 sm:w-64 rounded-[2rem] border-4 border-slate-700/70 shadow-2xl overflow-hidden bg-black aspect-[9/16]">
+                    <video
+                        class="w-full h-full object-cover"
+                        poster="{% static 'images/video-glimpse-poster.jpg' %}"
+                        autoplay muted loop playsinline
+                        aria-hidden="true">
+                        <source src="{% static 'videos/library-glimpse.mp4' %}" type="video/mp4">
+                    </video>
+                    <div class="absolute inset-x-0 bottom-0 p-3 bg-gradient-to-t from-black/70 to-transparent">
+                        <p class="text-white text-xs font-semibold">Live inside the hall</p>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
+
+    <!-- ================= VIDEO TOUR SECTION ================= -->
+    <div id="video-tour" class="mb-16 scroll-mt-20">
+        <div class="flex flex-col sm:flex-row items-start sm:items-end justify-between mb-6 gap-2">
+            <div>
+                <h2 class="text-2xl font-bold text-slate-900 tracking-tight">Take a Video Tour</h2>
+                <p class="text-sm text-slate-500">See the real study hall, seating rows, and facilities before you book</p>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+            <!-- Full walkthrough video -->
+            <div class="md:col-span-2 bg-slate-900 rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                <div class="relative bg-black flex items-center justify-center" style="max-height: 70vh;">
+                    <video
+                        class="max-h-[70vh] w-auto mx-auto"
+                        poster="{% static 'images/video-tour-poster.jpg' %}"
+                        controls preload="metadata" playsinline>
+                        <source src="{% static 'videos/library-tour.mp4' %}" type="video/mp4">
+                        Your browser does not support embedded video.
+                    </video>
+                </div>
+                <div class="p-5">
+                    <h3 class="font-bold text-white text-base mb-1">Full Study Hall Walkthrough</h3>
+                    <p class="text-xs text-slate-300 leading-relaxed">
+                        A complete tour of the numbered study desks, AC seating rows, and reading environment — filmed inside Bhagya Laxmi Library.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Quick glimpse video -->
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
+                <div class="relative bg-black flex items-center justify-center flex-1" style="max-height: 70vh;">
+                    <video
+                        class="max-h-[70vh] w-auto mx-auto"
+                        poster="{% static 'images/video-glimpse-poster.jpg' %}"
+                        controls preload="metadata" playsinline>
+                        <source src="{% static 'videos/library-glimpse.mp4' %}" type="video/mp4">
+                        Your browser does not support embedded video.
+                    </video>
+                </div>
+                <div class="p-5">
+                    <h3 class="font-bold text-slate-900 text-base mb-1">Quick Glimpse</h3>
+                    <p class="text-xs text-slate-600 leading-relaxed">
+                        A short clip of students studying in the silent hall — real atmosphere, real seats.
+                    </p>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- ================= PHOTO GALLERY ================= -->
+    <div class="mb-16">
+        <div class="flex flex-col sm:flex-row items-start sm:items-end justify-between mb-6 gap-2">
+            <div>
+                <h2 class="text-2xl font-bold text-slate-900 tracking-tight">Study Hall Environment & Facilities</h2>
+                <p class="text-sm text-slate-500">Real photographs of Bhagya Laxmi Library interior and amenities</p>
+            </div>
+            <div class="text-xs font-semibold px-3 py-1 bg-emerald-50 text-emerald-700 rounded-full border border-emerald-200">
+                150 Fully Equipped AC Desks
+            </div>
+        </div>
+
+        <!-- Responsive Gallery Grid for Real Client Photographs -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <!-- Image Card 1: AC Study Hall Main Area -->
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden group">
+                <div class="aspect-w-16 aspect-h-10 bg-slate-100 relative overflow-hidden h-52 flex items-center justify-center">
+                    <img
+                        src="{% static 'images/interior-1.jpg' %}"
+                        alt="Bhagya Laxmi Library air-conditioned study hall with individual desks"
+                        onerror="this.parentElement.innerHTML='<div class=\'flex flex-col items-center justify-center h-full text-slate-400 p-4 text-center\'><span class=\'text-3xl mb-1\'>🪑</span><span class=\'text-xs font-semibold\'>Silent AC Study Desks</span><span class=\'text-[10px] text-slate-400\'>Numbered 1 to 150</span></div>'"
+                        class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        loading="lazy">
+                </div>
+                <div class="p-5">
+                    <h3 class="font-bold text-slate-900 text-base mb-1">Silent AC Study Hall</h3>
+                    <p class="text-xs text-slate-600 leading-relaxed">
+                        Individual desks with partition panels designed for distraction-free reading and extended study sessions.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Image Card 2: Individual Desk Power & Lighting -->
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden group">
+                <div class="aspect-w-16 aspect-h-10 bg-slate-100 relative overflow-hidden h-52 flex items-center justify-center">
+                    <img
+                        src="{% static 'images/interior-2.jpg' %}"
+                        alt="Individual power charging sockets and reading light at every desk"
+                        onerror="this.parentElement.innerHTML='<div class=\'flex flex-col items-center justify-center h-full text-slate-400 p-4 text-center\'><span class=\'text-3xl mb-1\'>🔌</span><span class=\'text-xs font-semibold\'>Dedicated Power Sockets</span><span class=\'text-[10px] text-slate-400\'>Laptop & Mobile Charging</span></div>'"
+                        class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        loading="lazy">
+                </div>
+                <div class="p-5">
+                    <h3 class="font-bold text-slate-900 text-base mb-1">Power Sockets & Lighting</h3>
+                    <p class="text-xs text-slate-600 leading-relaxed">
+                        Every single study desk (#1 to #150) features its own power socket for laptops and study tablets.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Image Card 3: High-Speed Internet & Clean Atmosphere -->
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden group">
+                <div class="aspect-w-16 aspect-h-10 bg-slate-100 relative overflow-hidden h-52 flex items-center justify-center">
+                    <img
+                        src="{% static 'images/interior-3.jpg' %}"
+                        alt="Clean silent study environment with high-speed Wi-Fi"
+                        onerror="this.parentElement.innerHTML='<div class=\'flex flex-col items-center justify-center h-full text-slate-400 p-4 text-center\'><span class=\'text-3xl mb-1\'>📶</span><span class=\'text-xs font-semibold\'>High-Speed Wi-Fi</span><span class=\'text-[10px] text-slate-400\'>Clean & Disciplined Space</span></div>'"
+                        class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        loading="lazy">
+                </div>
+                <div class="p-5">
+                    <h3 class="font-bold text-slate-900 text-base mb-1">High-Speed Wi-Fi & RO Water</h3>
+                    <p class="text-xs text-slate-600 leading-relaxed">
+                        High-speed fiber connectivity for online video lectures, clean RO drinking water, and strict silence discipline.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= CORE FEATURES ================= -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
+        <!-- Feature 1 -->
+        <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+            <div class="w-12 h-12 rounded-xl bg-emerald-100 text-emerald-800 flex items-center justify-center font-bold text-xl mb-4">
+                150
+            </div>
+            <h3 class="font-bold text-slate-900 text-base mb-2">150 Dedicated Seats</h3>
+            <p class="text-xs text-slate-600 leading-relaxed">
+                Strict 150-seat inventory numbered sequentially from 1 to 150. No overcrowding and guaranteed reserved seating.
+            </p>
+        </div>
+
+        <!-- Feature 2 -->
+        <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+            <div class="w-12 h-12 rounded-xl bg-blue-100 text-blue-800 flex items-center justify-center font-bold text-xl mb-4">
+                ₹800
+            </div>
+            <h3 class="font-bold text-slate-900 text-base mb-2">₹800 for 30 Days</h3>
+            <p class="text-xs text-slate-600 leading-relaxed">
+                Clear, transparent pricing. 30 calendar days validity with automated renewal notifications and 48-hour grace protection.
+            </p>
+        </div>
+
+        <!-- Feature 3 -->
+        <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+            <div class="w-12 h-12 rounded-xl bg-indigo-100 text-indigo-800 flex items-center justify-center font-bold text-xl mb-4">
+                ⚡
+            </div>
+            <h3 class="font-bold text-slate-900 text-base mb-2">Online Seat Allocation</h3>
+            <p class="text-xs text-slate-600 leading-relaxed">
+                Server-side random seat assignment with instant 30-minute hold and concurrency protection.
+            </p>
+        </div>
+
+        <!-- Feature 4 -->
+        <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+            <div class="w-12 h-12 rounded-xl bg-amber-100 text-amber-800 flex items-center justify-center font-bold text-xl mb-4">
+                📱
+            </div>
+            <h3 class="font-bold text-slate-900 text-base mb-2">Manual UPI Payments</h3>
+            <p class="text-xs text-slate-600 leading-relaxed">
+                Direct UPI QR payments with UTR reference tracking and official sequential receipt generation.
+            </p>
+        </div>
+    </div>
+
+    <!-- ================= LOCATION ================= -->
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden mb-16">
+        <div class="grid grid-cols-1 md:grid-cols-2">
+            <div class="p-6 sm:p-8 flex flex-col justify-center">
+                <div class="flex items-center gap-2 text-emerald-600 text-xs font-semibold uppercase tracking-wider mb-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                    </svg>
+                    Verified Physical Location
+                </div>
+                <h3 class="text-xl font-bold text-slate-900 mb-2">Bhagya Laxmi Library</h3>
+                <p class="text-sm text-slate-600 leading-relaxed mb-6">
+                    Ward No. 3, Near Guru Tegh Bahadur Gurudwara, Bishnoi Mohalla, Suratgarh, Rajasthan – 335804
+                </p>
+
+                <a
+                    href="https://maps.app.goo.gl/97AWQim1UCMHrpTR9?g_st=aw"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="inline-flex items-center self-start px-6 py-3 bg-slate-900 hover:bg-slate-800 text-white font-semibold text-sm rounded-xl shadow transition-colors whitespace-nowrap">
+                    <svg class="w-4 h-4 mr-2 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+                    </svg>
+                    Open in Google Maps
+                </a>
+            </div>
+            <div class="h-64 md:h-auto min-h-[16rem] bg-slate-100">
+                <iframe
+                    class="w-full h-full border-0"
+                    loading="lazy"
+                    referrerpolicy="no-referrer-when-downgrade"
+                    src="https://www.google.com/maps?q=Bhagya+Laxmi+Library+Ward+No+3+Near+Guru+Tegh+Bahadur+Gurudwara+Bishnoi+Mohalla+Suratgarh+Rajasthan+335804&output=embed">
+                </iframe>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- ================= MOBILE STICKY CTA ================= -->
+{% if not user.is_authenticated %}
+<div class="fixed bottom-0 inset-x-0 sm:hidden bg-white border-t border-slate-200 shadow-[0_-4px_12px_rgba(0,0,0,0.06)] p-3 z-40">
+    <a href="{% url 'accounts:register' %}" class="block text-center w-full px-6 py-3 bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold text-sm rounded-xl shadow-lg">
+        Book Your Seat Now
+    </a>
+</div>
+<div class="h-16 sm:hidden"></div>
+{% endif %}
+
+{% endblock %}

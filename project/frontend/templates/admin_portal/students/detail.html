@@ -1,0 +1,446 @@
+{% extends "admin_portal/base.html" %}
+
+{% block title %}Student Details{% endblock %}
+
+{% block content %}
+
+<a
+    href="{% url 'admin_portal:students' %}"
+    class="back-link"
+>
+    ← Back to Students
+</a>
+
+
+<div class="page-header">
+
+    <div>
+
+        <h1>
+            {% if profile %}
+                {{ profile.full_name }}
+            {% else %}
+                Student
+            {% endif %}
+        </h1>
+
+        <p>
+            {{ student.email }}
+        </p>
+
+    </div>
+
+</div>
+
+
+<!-- ACCOUNT -->
+
+<div class="detail-card">
+
+    <div class="flex items-center justify-between gap-4 mb-5">
+
+        <h2>
+            Account
+        </h2>
+
+        {% if student.is_active %}
+
+            <span class="inline-flex px-3 py-1 rounded-full bg-green-100 text-green-800 text-xs font-semibold">
+                Active
+            </span>
+
+        {% else %}
+
+            <span class="inline-flex px-3 py-1 rounded-full bg-red-100 text-red-800 text-xs font-semibold">
+                Inactive
+            </span>
+
+        {% endif %}
+
+    </div>
+
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+
+        <div>
+            <p class="text-xs text-gray-500">
+                Email
+            </p>
+
+            <p class="font-medium">
+                {{ student.email }}
+            </p>
+        </div>
+
+
+        <div>
+            <p class="text-xs text-gray-500">
+                Phone
+            </p>
+
+            <p class="font-medium">
+                {{ student.phone_number }}
+            </p>
+        </div>
+
+
+        <div>
+            <p class="text-xs text-gray-500">
+                Joined
+            </p>
+
+            <p class="font-medium">
+                {{ student.date_joined|date:"d M Y, h:i A" }}
+            </p>
+        </div>
+
+
+        <div>
+            <p class="text-xs text-gray-500">
+                Verification
+            </p>
+
+            <p class="font-medium">
+                {% if student.is_verified %}
+                    Verified
+                {% else %}
+                    Not Verified
+                {% endif %}
+            </p>
+        </div>
+
+    </div>
+
+
+    <div class="mt-6">
+
+        <form
+            method="post"
+            action="{% url 'admin_portal:student_toggle_status' student.id %}"
+        >
+
+            {% csrf_token %}
+
+            {% if student.is_active %}
+
+                <button
+                    type="submit"
+                    class="px-4 py-2 rounded-lg bg-red-600 text-white font-medium hover:bg-red-700"
+                >
+                    Deactivate Student
+                </button>
+
+            {% else %}
+
+                <button
+                    type="submit"
+                    class="px-4 py-2 rounded-lg bg-emerald-600 text-white font-medium hover:bg-emerald-700"
+                >
+                    Activate Student
+                </button>
+
+            {% endif %}
+
+        </form>
+
+    </div>
+
+</div>
+
+
+<!-- PROFILE -->
+
+{% if profile %}
+
+<div class="detail-card">
+
+    <h2>
+        Personal Information
+    </h2>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+
+        <div>
+            <p class="text-xs text-gray-500">
+                Full Name
+            </p>
+
+            <p class="font-medium">
+                {{ profile.full_name }}
+            </p>
+        </div>
+
+
+        <div>
+            <p class="text-xs text-gray-500">
+                Address
+            </p>
+
+            <p class="font-medium">
+                {{ profile.address|default:"—" }}
+            </p>
+        </div>
+
+
+        <div>
+            <p class="text-xs text-gray-500">
+                Emergency Contact
+            </p>
+
+            <p class="font-medium">
+                {{ profile.emergency_contact_name|default:"—" }}
+            </p>
+        </div>
+
+
+        <div>
+            <p class="text-xs text-gray-500">
+                Emergency Phone
+            </p>
+
+            <p class="font-medium">
+                {{ profile.emergency_contact_phone|default:"—" }}
+            </p>
+        </div>
+
+    </div>
+
+</div>
+
+{% endif %}
+
+
+<!-- CURRENT MEMBERSHIP -->
+
+<div class="detail-card">
+
+    <h2>
+        Current Membership
+    </h2>
+
+
+    {% if active_booking %}
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+
+            <div>
+                <p class="text-xs text-gray-500">
+                    Seat
+                </p>
+
+                <p class="text-xl font-bold">
+                    #{{ active_booking.seat.number }}
+                </p>
+            </div>
+
+
+            <div>
+                <p class="text-xs text-gray-500">
+                    Status
+                </p>
+
+                <p class="font-semibold">
+                    {{ active_booking.get_status_display }}
+                </p>
+            </div>
+
+
+            <div>
+                <p class="text-xs text-gray-500">
+                    Membership Expires
+                </p>
+
+                <p class="font-semibold">
+                    {% if active_booking.membership_expires_at %}
+                        {{ active_booking.membership_expires_at|date:"d M Y, h:i A" }}
+                    {% else %}
+                        —
+                    {% endif %}
+                </p>
+            </div>
+
+        </div>
+
+    {% else %}
+
+        <p class="text-gray-500">
+            No active membership or booking.
+        </p>
+
+    {% endif %}
+
+</div>
+
+
+<!-- BOOKING HISTORY -->
+
+<div class="detail-card">
+
+    <h2>
+        Booking History
+    </h2>
+
+
+    <div class="overflow-x-auto">
+
+        <table class="w-full text-sm">
+
+            <thead>
+
+                <tr class="border-b border-gray-200 text-left">
+
+                    <th class="py-3 pr-4">
+                        Reference
+                    </th>
+
+                    <th class="py-3 pr-4">
+                        Seat
+                    </th>
+
+                    <th class="py-3 pr-4">
+                        Status
+                    </th>
+
+                    <th class="py-3">
+                        Created
+                    </th>
+
+                </tr>
+
+            </thead>
+
+
+            <tbody>
+
+                {% for booking in bookings %}
+
+                <tr class="border-b border-gray-100">
+
+                    <td class="py-3 pr-4 font-medium">
+                        {{ booking.booking_reference }}
+                    </td>
+
+                    <td class="py-3 pr-4">
+                        #{{ booking.seat.number }}
+                    </td>
+
+                    <td class="py-3 pr-4">
+                        {{ booking.get_status_display }}
+                    </td>
+
+                    <td class="py-3">
+                        {{ booking.created_at|date:"d M Y" }}
+                    </td>
+
+                </tr>
+
+                {% empty %}
+
+                <tr>
+
+                    <td
+                        colspan="4"
+                        class="py-8 text-center text-gray-500"
+                    >
+                        No bookings found.
+                    </td>
+
+                </tr>
+
+                {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</div>
+
+
+<!-- PAYMENT HISTORY -->
+
+<div class="detail-card">
+
+    <h2>
+        Payment History
+    </h2>
+
+
+    <div class="overflow-x-auto">
+
+        <table class="w-full text-sm">
+
+            <thead>
+
+                <tr class="border-b border-gray-200 text-left">
+
+                    <th class="py-3 pr-4">
+                        Booking
+                    </th>
+
+                    <th class="py-3 pr-4">
+                        Amount
+                    </th>
+
+                    <th class="py-3 pr-4">
+                        UTR
+                    </th>
+
+                    <th class="py-3">
+                        Status
+                    </th>
+
+                </tr>
+
+            </thead>
+
+
+            <tbody>
+
+                {% for payment in payments %}
+
+                <tr class="border-b border-gray-100">
+
+                    <td class="py-3 pr-4">
+                        {{ payment.booking.booking_reference }}
+                    </td>
+
+                    <td class="py-3 pr-4 font-medium">
+                        ₹{{ payment.amount }}
+                    </td>
+
+                    <td class="py-3 pr-4">
+                        {{ payment.utr_number|default:"—" }}
+                    </td>
+
+                    <td class="py-3">
+                        {{ payment.get_status_display }}
+                    </td>
+
+                </tr>
+
+                {% empty %}
+
+                <tr>
+
+                    <td
+                        colspan="4"
+                        class="py-8 text-center text-gray-500"
+                    >
+                        No payments found.
+                    </td>
+
+                </tr>
+
+                {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</div>
+
+{% endblock %}

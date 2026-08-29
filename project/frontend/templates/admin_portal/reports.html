@@ -1,0 +1,294 @@
+{% extends "admin_portal/base.html" %}
+
+{% block title %}Reports{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+    <div>
+        <h1>Reports</h1>
+        <p>Operational overview of the Bhagya Laxmi Library.</p>
+    </div>
+</div>
+
+
+<!-- DATE FILTER -->
+
+<div class="detail-card">
+
+    <form method="get"
+          style="
+              display:flex;
+              gap:12px;
+              align-items:end;
+              flex-wrap:wrap;
+          ">
+
+        <div>
+            <label for="date_from">From</label>
+            <input
+                type="date"
+                id="date_from"
+                name="date_from"
+                value="{{ date_from }}"
+            >
+        </div>
+
+        <div>
+            <label for="date_to">To</label>
+            <input
+                type="date"
+                id="date_to"
+                name="date_to"
+                value="{{ date_to }}"
+            >
+        </div>
+
+        <button
+            type="submit"
+            class="maintenance-submit"
+        >
+            Apply Filter
+        </button>
+
+        {% if date_from or date_to %}
+            <a
+                href="{% url 'admin_portal:reports' %}"
+                class="back-link"
+            >
+                Clear
+            </a>
+        {% endif %}
+
+    </form>
+
+</div>
+
+
+<!-- OVERVIEW -->
+
+<div class="stats-grid">
+
+    <div class="stat-card">
+        <span>Total Students</span>
+        <strong>{{ total_students }}</strong>
+    </div>
+
+    <div class="stat-card">
+        <span>Active Members</span>
+        <strong>{{ active_members }}</strong>
+    </div>
+
+    <div class="stat-card">
+        <span>Total Bookings</span>
+        <strong>{{ total_bookings }}</strong>
+    </div>
+
+    <div class="stat-card">
+        <span>Verified Revenue</span>
+        <strong>₹{{ verified_revenue }}</strong>
+    </div>
+
+    <div class="stat-card">
+        <span>Pending Payments</span>
+        <strong>{{ pending_payments }}</strong>
+    </div>
+
+</div>
+
+
+<!-- SEATS -->
+
+<div class="detail-card">
+
+    <h2>Seat Utilization</h2>
+
+    <div class="stats-grid">
+
+        <div class="stat-card">
+            <span>Total Seats</span>
+            <strong>{{ total_seats }}</strong>
+        </div>
+
+        <div class="stat-card">
+            <span>Available</span>
+            <strong>{{ available_seats }}</strong>
+        </div>
+
+        <div class="stat-card">
+            <span>Held</span>
+            <strong>{{ held_seats }}</strong>
+        </div>
+
+        <div class="stat-card">
+            <span>Occupied</span>
+            <strong>{{ occupied_seats }}</strong>
+        </div>
+
+        <div class="stat-card">
+            <span>Maintenance</span>
+            <strong>{{ maintenance_seats }}</strong>
+        </div>
+
+    </div>
+
+    <div style="margin-top:24px;">
+
+        <strong>
+            Current Utilization: {{ utilization }}%
+        </strong>
+
+        <div style="
+            margin-top:10px;
+            width:100%;
+            height:12px;
+            background:#e5e7eb;
+            border-radius:999px;
+            overflow:hidden;
+        ">
+
+            <div style="
+                width:{{ utilization }}%;
+                height:100%;
+                background:#10b981;
+            "></div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- BOOKINGS -->
+
+<div class="detail-card">
+
+    <h2>Booking Status</h2>
+
+    <div class="stats-grid">
+
+        <div class="stat-card">
+            <span>Pending Payment</span>
+            <strong>{{ booking_stats.pending }}</strong>
+        </div>
+
+        <div class="stat-card">
+            <span>Confirmed</span>
+            <strong>{{ booking_stats.confirmed }}</strong>
+        </div>
+
+        <div class="stat-card">
+            <span>Expiring Soon</span>
+            <strong>{{ booking_stats.expiring }}</strong>
+        </div>
+
+        <div class="stat-card">
+            <span>Grace Period</span>
+            <strong>{{ booking_stats.grace }}</strong>
+        </div>
+
+        <div class="stat-card">
+            <span>Expired</span>
+            <strong>{{ booking_stats.expired }}</strong>
+        </div>
+
+        <div class="stat-card">
+            <span>Cancelled</span>
+            <strong>{{ booking_stats.cancelled }}</strong>
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- PAYMENTS -->
+
+<div class="detail-card">
+
+    <h2>Payment Overview</h2>
+
+    <div class="stats-grid">
+
+        <div class="stat-card">
+            <span>Verified Revenue</span>
+            <strong>₹{{ verified_revenue }}</strong>
+        </div>
+
+        <div class="stat-card">
+            <span>Pending Verification</span>
+            <strong>{{ pending_payments }}</strong>
+        </div>
+
+        <div class="stat-card">
+            <span>Rejected Payments</span>
+            <strong>{{ rejected_payments }}</strong>
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- COMPLAINTS -->
+
+<div class="detail-card">
+
+    <h2>Complaints</h2>
+
+    <div class="stats-grid">
+
+        <div class="stat-card">
+            <span>Open</span>
+            <strong>{{ complaint_stats.open }}</strong>
+        </div>
+
+        <div class="stat-card">
+            <span>In Progress</span>
+            <strong>{{ complaint_stats.in_progress }}</strong>
+        </div>
+
+        <div class="stat-card">
+            <span>Resolved</span>
+            <strong>{{ complaint_stats.resolved }}</strong>
+        </div>
+
+        <div class="stat-card">
+            <span>Closed</span>
+            <strong>{{ complaint_stats.closed }}</strong>
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- FEEDBACK -->
+
+<div class="detail-card">
+
+    <h2>Feedback</h2>
+
+    <div class="stats-grid">
+
+        <div class="stat-card">
+            <span>Total Feedback</span>
+            <strong>{{ feedback_count }}</strong>
+        </div>
+
+        <div class="stat-card">
+            <span>Average Rating</span>
+            <strong>{{ average_rating|floatformat:1 }} / 5</strong>
+        </div>
+
+        <div class="stat-card">
+            <span>Reviewed</span>
+            <strong>{{ reviewed_feedback }}</strong>
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

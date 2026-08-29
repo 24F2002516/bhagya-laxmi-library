@@ -1,0 +1,269 @@
+{% extends "admin_portal/base.html" %}
+
+{% block title %}Audit Logs{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+    <div>
+        <h1>Audit Logs</h1>
+        <p>
+            System-wide record of security, financial and operational activity.
+        </p>
+    </div>
+</div>
+
+
+<!-- Filters -->
+
+<div class="detail-card">
+
+    <form method="get"
+          style="
+              display:flex;
+              gap:12px;
+              flex-wrap:wrap;
+              align-items:center;
+          ">
+
+        <input
+            type="text"
+            name="q"
+            value="{{ search }}"
+            placeholder="Search action, target or admin..."
+            style="
+                flex:1;
+                min-width:250px;
+                padding:11px 14px;
+                border:1px solid #d1d5db;
+                border-radius:9px;
+            "
+        >
+
+        <select
+            name="action"
+            style="
+                padding:11px 14px;
+                border:1px solid #d1d5db;
+                border-radius:9px;
+                background:white;
+            "
+        >
+            <option value="">All Actions</option>
+
+            {% for item in actions %}
+                <option
+                    value="{{ item }}"
+                    {% if action == item %}selected{% endif %}
+                >
+                    {{ item }}
+                </option>
+            {% endfor %}
+        </select>
+
+        <button
+            type="submit"
+            class="maintenance-submit"
+        >
+            Search
+        </button>
+
+        {% if search or action %}
+            <a
+                href="{% url 'admin_portal:audit_logs' %}"
+                class="back-link"
+            >
+                Clear
+            </a>
+        {% endif %}
+
+    </form>
+
+</div>
+
+
+<!-- Audit Log Table -->
+
+<div class="detail-card">
+
+    <div style="overflow-x:auto;">
+
+        <table style="
+            width:100%;
+            border-collapse:collapse;
+            min-width:850px;
+        ">
+
+            <thead>
+                <tr style="
+                    border-bottom:2px solid #e5e7eb;
+                    text-align:left;
+                ">
+
+                    <th style="padding:13px 10px;">
+                        Time
+                    </th>
+
+                    <th style="padding:13px 10px;">
+                        Admin / Actor
+                    </th>
+
+                    <th style="padding:13px 10px;">
+                        Action
+                    </th>
+
+                    <th style="padding:13px 10px;">
+                        Target
+                    </th>
+
+                    <th style="padding:13px 10px;">
+                        IP Address
+                    </th>
+
+                    <th style="padding:13px 10px;">
+                        Details
+                    </th>
+
+                </tr>
+            </thead>
+
+            <tbody>
+
+                {% for log in logs %}
+
+                    <tr style="
+                        border-bottom:1px solid #e5e7eb;
+                    ">
+
+                        <td style="
+                            padding:14px 10px;
+                            white-space:nowrap;
+                            color:#6b7280;
+                            font-size:13px;
+                        ">
+                            {{ log.timestamp|date:"d M Y, H:i:s" }}
+                        </td>
+
+
+                        <td style="padding:14px 10px;">
+
+                            {% if log.actor %}
+                                <strong>
+                                    {{ log.actor.email }}
+                                </strong>
+                            {% else %}
+                                <span style="color:#6b7280;">
+                                    System
+                                </span>
+                            {% endif %}
+
+                        </td>
+
+
+                        <td style="padding:14px 10px;">
+
+                            <span style="
+                                display:inline-block;
+                                padding:5px 9px;
+                                border-radius:999px;
+                                background:#f3f4f6;
+                                font-size:12px;
+                                font-weight:600;
+                            ">
+                                {{ log.action }}
+                            </span>
+
+                        </td>
+
+
+                        <td style="padding:14px 10px;">
+
+                            <strong>
+                                {{ log.target_model }}
+                            </strong>
+
+                            <div style="
+                                margin-top:3px;
+                                font-size:12px;
+                                color:#6b7280;
+                            ">
+                                #{{ log.target_id }}
+                            </div>
+
+                        </td>
+
+
+                        <td style="
+                            padding:14px 10px;
+                            font-size:13px;
+                            color:#6b7280;
+                        ">
+                            {{ log.ip_address|default:"—" }}
+                        </td>
+
+
+                        <td style="padding:14px 10px;">
+
+                            {% if log.details %}
+
+                                <details>
+
+                                    <summary style="
+                                        cursor:pointer;
+                                        color:#2563eb;
+                                        font-size:13px;
+                                    ">
+                                        View details
+                                    </summary>
+
+                                    <pre style="
+                                        margin-top:10px;
+                                        padding:10px;
+                                        background:#f9fafb;
+                                        border-radius:8px;
+                                        font-size:11px;
+                                        white-space:pre-wrap;
+                                        max-width:350px;
+                                        overflow:auto;
+                                    ">{{ log.details }}</pre>
+
+                                </details>
+
+                            {% else %}
+
+                                <span style="color:#9ca3af;">
+                                    —
+                                </span>
+
+                            {% endif %}
+
+                        </td>
+
+                    </tr>
+
+                {% empty %}
+
+                    <tr>
+                        <td
+                            colspan="6"
+                            style="
+                                padding:40px;
+                                text-align:center;
+                                color:#6b7280;
+                            "
+                        >
+                            No audit logs found.
+                        </td>
+                    </tr>
+
+                {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</div>
+
+{% endblock %}

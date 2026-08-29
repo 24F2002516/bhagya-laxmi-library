@@ -1,0 +1,20 @@
+{% extends "admin_portal/base.html" %}
+
+{% block title %}Payments{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto space-y-6">
+    <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
+        <div><p class="text-sm font-semibold text-emerald-700">Finance operations</p><h1 class="text-3xl font-bold text-gray-950 mt-1">Payments</h1><p class="text-gray-500 mt-1">Review submitted payment attempts and verification status.</p></div>
+        <a href="{% url 'admin_portal:dashboard' %}" class="text-sm font-semibold text-gray-600 hover:text-gray-950">Back to dashboard</a>
+    </div>
+    <form method="get" class="bg-white border border-gray-200 rounded-lg p-4 grid grid-cols-1 md:grid-cols-4 gap-3">
+        <label class="text-sm text-gray-600">Status<select name="status" class="mt-1 w-full rounded-md border-gray-300"><option value="PENDING_VERIFICATION" {% if status == 'PENDING_VERIFICATION' %}selected{% endif %}>Pending</option><option value="VERIFIED" {% if status == 'VERIFIED' %}selected{% endif %}>Approved</option><option value="REJECTED" {% if status == 'REJECTED' %}selected{% endif %}>Rejected</option><option value="ALL" {% if status == 'ALL' %}selected{% endif %}>All</option></select></label>
+        <label class="text-sm text-gray-600">Student or email<input name="q" value="{{ search }}" class="mt-1 w-full rounded-md border-gray-300" type="search"></label>
+        <label class="text-sm text-gray-600">UTR<input name="utr" value="{{ utr }}" class="mt-1 w-full rounded-md border-gray-300" type="search"></label>
+        <button class="self-end rounded-md bg-gray-950 text-white px-4 py-2 text-sm font-semibold" type="submit">Filter payments</button>
+    </form>
+    <div class="bg-white rounded-lg border border-gray-200 overflow-x-auto"><table class="min-w-full text-left text-sm"><thead class="bg-gray-50 text-gray-500"><tr><th class="px-4 py-3">Student</th><th class="px-4 py-3">Email</th><th class="px-4 py-3">Seat</th><th class="px-4 py-3">Amount</th><th class="px-4 py-3">UTR</th><th class="px-4 py-3">Submitted</th><th class="px-4 py-3">Status</th><th class="px-4 py-3">Action</th></tr></thead><tbody class="divide-y divide-gray-100">{% for payment in page_obj %}<tr><td class="px-4 py-3 font-medium">{% if payment.booking.student.student_profile %}{{ payment.booking.student.student_profile.full_name }}{% else %}{{ payment.booking.student.email }}{% endif %}</td><td class="px-4 py-3">{{ payment.booking.student.email }}</td><td class="px-4 py-3">#{{ payment.booking.seat.number }}</td><td class="px-4 py-3">₹{{ payment.amount }}</td><td class="px-4 py-3 font-mono">{{ payment.utr_number|default:"Not provided" }}</td><td class="px-4 py-3 text-gray-500">{{ payment.submitted_at|date:"d M Y, h:i A"|default:"Not submitted" }}</td><td class="px-4 py-3"><span class="rounded-full px-2 py-1 text-xs font-semibold {% if payment.status == 'PENDING_VERIFICATION' %}bg-amber-100 text-amber-800{% elif payment.status == 'VERIFIED' %}bg-emerald-100 text-emerald-800{% else %}bg-rose-100 text-rose-800{% endif %}">{{ payment.get_status_display }}</span></td><td class="px-4 py-3"><a class="font-semibold text-emerald-700 hover:text-emerald-900" href="{% url 'admin_portal:payment_detail' payment.id %}">Review</a></td></tr>{% empty %}<tr><td colspan="8" class="px-4 py-8 text-center text-gray-500">No payments match these filters.</td></tr>{% endfor %}</tbody></table></div>
+    {% if page_obj.has_other_pages %}<nav class="flex gap-2 text-sm">{% if page_obj.has_previous %}<a class="px-3 py-2 bg-white border rounded" href="?status={{ status }}&q={{ search }}&utr={{ utr }}&page={{ page_obj.previous_page_number }}">Previous</a>{% endif %}<span class="px-3 py-2 text-gray-500">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>{% if page_obj.has_next %}<a class="px-3 py-2 bg-white border rounded" href="?status={{ status }}&q={{ search }}&utr={{ utr }}&page={{ page_obj.next_page_number }}">Next</a>{% endif %}</nav>{% endif %}
+</div>
+{% endblock %}

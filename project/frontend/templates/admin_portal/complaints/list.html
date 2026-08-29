@@ -1,0 +1,180 @@
+{% extends "admin_portal/base.html" %}
+
+{% block title %}Complaints{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+    <div>
+        <h1>Complaints</h1>
+        <p>Manage student complaints and facility issues.</p>
+    </div>
+</div>
+
+
+<div class="stats-grid">
+
+    <div class="stat-card">
+        <span>Total Complaints</span>
+        <strong>{{ counts.total }}</strong>
+    </div>
+
+    <div class="stat-card">
+        <span>Open</span>
+        <strong>{{ counts.open }}</strong>
+    </div>
+
+    <div class="stat-card">
+        <span>In Progress</span>
+        <strong>{{ counts.in_progress }}</strong>
+    </div>
+
+    <div class="stat-card">
+        <span>Resolved</span>
+        <strong>{{ counts.resolved }}</strong>
+    </div>
+
+    <div class="stat-card">
+        <span>Closed</span>
+        <strong>{{ counts.closed }}</strong>
+    </div>
+
+</div>
+
+
+<div class="filter-bar">
+
+    <form method="get" style="
+        display:flex;
+        gap:12px;
+        width:100%;
+        align-items:center;
+        flex-wrap:wrap;
+    ">
+
+        <input
+            type="text"
+            name="q"
+            value="{{ search }}"
+            placeholder="Search ticket, student or title..."
+            style="
+                flex:1;
+                min-width:250px;
+                padding:12px 14px;
+                border:1px solid #d1d5db;
+                border-radius:10px;
+            "
+        >
+
+        <select
+            name="status"
+            style="
+                padding:12px 14px;
+                border:1px solid #d1d5db;
+                border-radius:10px;
+                background:white;
+            "
+        >
+            <option value="ALL" {% if status == "ALL" %}selected{% endif %}>
+                All Complaints
+            </option>
+
+            {% for choice in complaint_statuses %}
+                <option
+                    value="{{ choice.value }}"
+                    {% if status == choice.value %}selected{% endif %}
+                >
+                    {{ choice.label }}
+                </option>
+            {% endfor %}
+        </select>
+
+        <button
+            type="submit"
+            class="maintenance-submit"
+        >
+            Search
+        </button>
+
+    </form>
+
+</div>
+
+
+<div class="detail-card">
+
+    {% for complaint in complaints %}
+
+        <div style="
+            padding:18px 0;
+            border-bottom:1px solid #e5e7eb;
+        ">
+
+            <div style="
+                display:flex;
+                justify-content:space-between;
+                align-items:flex-start;
+                gap:20px;
+            ">
+
+                <div>
+
+                    <strong style="font-size:16px;">
+                        {{ complaint.ticket_number }}
+                    </strong>
+
+                    <h3 style="margin:6px 0;">
+                        {{ complaint.title }}
+                    </h3>
+
+                    <p style="
+                        margin:0;
+                        color:#6b7280;
+                    ">
+                        {{ complaint.student.email }}
+                    </p>
+
+                </div>
+
+                <span class="maintenance-status">
+                    {{ complaint.get_status_display }}
+                </span>
+
+            </div>
+
+            <div style="
+                margin-top:12px;
+                display:flex;
+                justify-content:space-between;
+                align-items:center;
+                gap:15px;
+            ">
+
+                <span style="color:#6b7280;">
+                    {{ complaint.get_category_display }}
+
+                    {% if complaint.seat %}
+                        · Seat #{{ complaint.seat.number }}
+                    {% endif %}
+                </span>
+
+                <a
+                    href="{% url 'admin_portal:complaint_detail' complaint.id %}"
+                    class="back-link"
+                >
+                    View →
+                </a>
+
+            </div>
+
+        </div>
+
+    {% empty %}
+
+        <p>No complaints found.</p>
+
+    {% endfor %}
+
+</div>
+
+{% endblock %}

@@ -1,0 +1,292 @@
+{% extends "admin_portal/base.html" %}
+
+{% block content %}
+
+<div class="page-header">
+    <div>
+        <h1>Bookings</h1>
+        <p>Manage all library seat bookings and memberships.</p>
+    </div>
+</div>
+
+
+<!-- Statistics -->
+
+<div class="stats-grid">
+
+    <div class="stat-card">
+        <span>Total Bookings</span>
+        <strong>{{ counts.total }}</strong>
+    </div>
+
+    <div class="stat-card">
+        <span>Active</span>
+        <strong>{{ counts.active }}</strong>
+    </div>
+
+    <div class="stat-card">
+        <span>Pending Payment</span>
+        <strong>{{ counts.pending }}</strong>
+    </div>
+
+    <div class="stat-card">
+        <span>Confirmed</span>
+        <strong>{{ counts.confirmed }}</strong>
+    </div>
+
+    <div class="stat-card">
+        <span>Expired</span>
+        <strong>{{ counts.expired }}</strong>
+    </div>
+
+    <div class="stat-card">
+        <span>Cancelled</span>
+        <strong>{{ counts.cancelled }}</strong>
+    </div>
+
+</div>
+
+
+<!-- Search -->
+
+<div class="card" style="margin-top: 24px;">
+
+    <form method="get">
+
+        <div style="
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            flex-wrap: wrap;
+        ">
+
+            <input
+                type="text"
+                name="q"
+                value="{{ search }}"
+                placeholder="Search booking, student or seat..."
+                style="
+                    flex: 1;
+                    min-width: 280px;
+                    padding: 12px 14px;
+                    border: 1px solid #d9dee7;
+                    border-radius: 10px;
+                    font-size: 15px;
+                "
+            >
+
+            <select
+                name="status"
+                style="
+                    padding: 12px 14px;
+                    border: 1px solid #d9dee7;
+                    border-radius: 10px;
+                    background: white;
+                    font-size: 15px;
+                "
+            >
+                <option value="ALL"
+                    {% if status == "ALL" %}selected{% endif %}>
+                    All Bookings
+                </option>
+
+                {% for choice in booking_statuses %}
+                    <option
+                        value="{{ choice.value }}"
+                        {% if status == choice.value %}selected{% endif %}
+                    >
+                        {{ choice.label }}
+                    </option>
+                {% endfor %}
+
+            </select>
+
+            <button
+                type="submit"
+                class="button button-primary"
+            >
+                Search
+            </button>
+
+        </div>
+
+    </form>
+
+</div>
+
+
+<!-- Bookings table -->
+
+<div class="card" style="margin-top: 24px; overflow-x: auto;">
+
+    {% if bookings %}
+
+    <table style="
+        width: 100%;
+        border-collapse: collapse;
+    ">
+
+        <thead>
+
+            <tr style="border-bottom: 1px solid #e5e7eb;">
+
+                <th style="text-align:left; padding: 14px 10px;">
+                    Booking
+                </th>
+
+                <th style="text-align:left; padding: 14px 10px;">
+                    Student
+                </th>
+
+                <th style="text-align:left; padding: 14px 10px;">
+                    Seat
+                </th>
+
+                <th style="text-align:left; padding: 14px 10px;">
+                    Status
+                </th>
+
+                <th style="text-align:left; padding: 14px 10px;">
+                    Membership
+                </th>
+
+                <th style="text-align:left; padding: 14px 10px;">
+                    Created
+                </th>
+
+                <th style="text-align:right; padding: 14px 10px;">
+                    Action
+                </th>
+
+            </tr>
+
+        </thead>
+
+        <tbody>
+
+            {% for booking in bookings %}
+
+            <tr style="border-bottom: 1px solid #f0f1f3;">
+
+                <td style="padding: 16px 10px;">
+
+                    <strong>
+                        {{ booking.booking_reference }}
+                    </strong>
+
+                </td>
+
+
+                <td style="padding: 16px 10px;">
+
+                    {% if booking.student.student_profile.full_name %}
+                        {{ booking.student.student_profile.full_name }}
+                    {% else %}
+                        {{ booking.student.email }}
+                    {% endif %}
+
+                    <div style="
+                        color: #718096;
+                        font-size: 13px;
+                        margin-top: 3px;
+                    ">
+                        {{ booking.student.email }}
+                    </div>
+
+                </td>
+
+
+                <td style="padding: 16px 10px;">
+
+                    <strong>
+                        #{{ booking.seat.number }}
+                    </strong>
+
+                </td>
+
+
+                <td style="padding: 16px 10px;">
+
+                    <span class="status-badge status-{{ booking.status|lower }}">
+                        {{ booking.get_status_display }}
+                    </span>
+
+                </td>
+
+
+                <td style="padding: 16px 10px;">
+
+                    {% if booking.membership_start %}
+
+                        <div>
+                            {{ booking.membership_start|date:"d M Y" }}
+                        </div>
+
+                        {% if booking.membership_expires_at %}
+                            <div style="
+                                color: #718096;
+                                font-size: 13px;
+                            ">
+                                → {{ booking.membership_expires_at|date:"d M Y" }}
+                            </div>
+                        {% endif %}
+
+                    {% else %}
+
+                        <span style="color:#718096;">
+                            Not started
+                        </span>
+
+                    {% endif %}
+
+                </td>
+
+
+                <td style="padding: 16px 10px;">
+
+                    {{ booking.created_at|date:"d M Y" }}
+
+                </td>
+
+
+                <td style="
+                    padding: 16px 10px;
+                    text-align: right;
+                ">
+
+                    <a
+                        href="{% url 'admin_portal:booking_detail' booking.id %}"
+                        class="button"
+                    >
+                        View
+                    </a>
+
+                </td>
+
+            </tr>
+
+            {% endfor %}
+
+        </tbody>
+
+    </table>
+
+    {% else %}
+
+        <div style="
+            padding: 50px;
+            text-align: center;
+            color: #718096;
+        ">
+            <strong>No bookings found.</strong>
+
+            <div style="margin-top: 6px;">
+                Try changing your search or status filter.
+            </div>
+        </div>
+
+    {% endif %}
+
+</div>
+
+{% endblock %}

@@ -1,0 +1,258 @@
+{% extends "admin_portal/base.html" %}
+
+{% block title %}Seat #{{ seat.number }}{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+    <div>
+        <h1>Seat #{{ seat.number }}</h1>
+        <p>Physical seat details and current allocation.</p>
+    </div>
+
+    <a
+        href="{% url 'admin_portal:seats' %}"
+        class="back-link"
+    >
+        ← Back to Seats
+    </a>
+</div>
+
+
+<!-- ==============================
+     SEAT INFORMATION
+================================ -->
+
+<div class="detail-card">
+
+    <h2>Seat Information</h2>
+
+    <p>
+        <strong>Status:</strong>
+
+        {% if seat.status == "AVAILABLE" %}
+            <span class="maintenance-status"
+                  style="background:#dcfce7;color:#166534;">
+                Available
+            </span>
+
+        {% elif seat.status == "HELD" %}
+            <span class="maintenance-status"
+                  style="background:#fef3c7;color:#92400e;">
+                Held
+            </span>
+
+        {% elif seat.status == "BOOKED" %}
+            <span class="maintenance-status"
+                  style="background:#fee2e2;color:#991b1b;">
+                Occupied
+            </span>
+
+        {% elif seat.status == "MAINTENANCE" %}
+            <span class="maintenance-status"
+                  style="background:#dbeafe;color:#1e40af;">
+                Under Maintenance
+            </span>
+
+        {% else %}
+            {{ seat.get_status_display }}
+        {% endif %}
+    </p>
+
+    <p>
+        <strong>Power Socket:</strong>
+        {% if seat.has_power_socket %}
+            Yes
+        {% else %}
+            No
+        {% endif %}
+    </p>
+
+    {% if seat.notes %}
+        <p>
+            <strong>Notes:</strong>
+            {{ seat.notes }}
+        </p>
+    {% endif %}
+
+</div>
+
+
+<!-- ==============================
+     CURRENT BOOKING
+================================ -->
+
+{% if active_booking %}
+
+<div class="detail-card">
+
+    <h2>Current Booking</h2>
+
+    <p>
+        <strong>Student:</strong>
+        {{ active_booking.student.email }}
+    </p>
+
+    <p>
+        <strong>Booking Reference:</strong>
+        {{ active_booking.booking_reference }}
+    </p>
+
+    <p>
+        <strong>Status:</strong>
+        {{ active_booking.get_status_display }}
+    </p>
+
+    <p>
+        <strong>Membership Start:</strong>
+        {{ active_booking.membership_start|default:"—" }}
+    </p>
+
+    <p>
+        <strong>Membership Expires:</strong>
+        {{ active_booking.membership_expires_at|default:"—" }}
+    </p>
+
+</div>
+
+{% endif %}
+
+
+<!-- ==============================
+     MAINTENANCE ACTION
+================================ -->
+
+{% if seat.status == "AVAILABLE" %}
+
+<div class="detail-card">
+
+    <h2>Maintenance</h2>
+
+    <form
+        method="post"
+        action="{% url 'admin_portal:seat_maintenance' seat.id %}"
+        class="maintenance-form"
+    >
+
+        {% csrf_token %}
+
+        <label for="issue_description">
+            Issue Description
+        </label>
+
+        <textarea
+            id="issue_description"
+            name="issue_description"
+            required
+            rows="4"
+            placeholder="Example: AC not cooling near seat."
+        ></textarea>
+
+        <button
+            type="submit"
+            class="maintenance-submit"
+        >
+            Mark for Maintenance
+        </button>
+
+    </form>
+
+</div>
+
+
+{% elif seat.status == "MAINTENANCE" %}
+
+<div class="detail-card">
+
+    <h2>Maintenance</h2>
+
+    <p style="margin-top:0;color:#6b7280;">
+        This seat is currently unavailable because it is under maintenance.
+    </p>
+
+    <form
+        method="post"
+        action="{% url 'admin_portal:seat_maintenance_resolve' seat.id %}"
+    >
+
+        {% csrf_token %}
+
+        <button
+            type="submit"
+            class="maintenance-resolve"
+        >
+            Resolve Maintenance
+        </button>
+
+    </form>
+
+</div>
+
+{% endif %}
+
+
+<!-- ==============================
+     MAINTENANCE HISTORY
+================================ -->
+
+<div class="detail-card">
+
+    <h2>Maintenance History</h2>
+
+    {% for log in maintenance_logs %}
+
+        <div class="maintenance-log">
+
+            <div style="
+                display:flex;
+                align-items:center;
+                justify-content:space-between;
+                gap:12px;
+                margin-bottom:8px;
+            ">
+
+                <strong>
+                    {{ log.get_status_display }}
+                </strong>
+
+                <span style="
+                    color:#6b7280;
+                    font-size:12px;
+                ">
+                    {{ log.created_at|date:"d M Y, H:i" }}
+                </span>
+
+            </div>
+
+            <p style="
+                margin:0;
+                color:#374151;
+                line-height:1.5;
+            ">
+                {{ log.issue_description }}
+            </p>
+
+            {% if log.resolved_at %}
+                <small style="
+                    display:block;
+                    margin-top:8px;
+                    color:#059669;
+                ">
+                    Resolved on
+                    {{ log.resolved_at|date:"d M Y, H:i" }}
+                </small>
+            {% endif %}
+
+        </div>
+
+    {% empty %}
+
+        <p style="color:#6b7280;">
+            No maintenance history.
+        </p>
+
+    {% endfor %}
+
+</div>
+
+{% endblock %}

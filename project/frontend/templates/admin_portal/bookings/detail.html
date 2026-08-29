@@ -1,0 +1,241 @@
+{% extends "admin_portal/base.html" %}
+
+{% block title %}Booking {{ booking.booking_reference }}{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+    <div>
+        <h1>{{ booking.booking_reference }}</h1>
+        <p>Booking and membership details.</p>
+    </div>
+
+    <a
+        href="{% url 'admin_portal:bookings' %}"
+        class="back-link"
+    >
+        ← Back to Bookings
+    </a>
+</div>
+
+
+<!-- BOOKING INFORMATION -->
+
+<div class="detail-card">
+
+    <h2>Booking Information</h2>
+
+    <p>
+        <strong>Booking Reference:</strong>
+        {{ booking.booking_reference }}
+    </p>
+
+    <p>
+        <strong>Status:</strong>
+        {{ booking.get_status_display }}
+    </p>
+
+    <p>
+        <strong>Seat:</strong>
+        #{{ booking.seat.number }}
+    </p>
+
+    <p>
+        <strong>Created:</strong>
+        {{ booking.created_at|date:"d M Y, H:i" }}
+    </p>
+
+    <p>
+        <strong>Active:</strong>
+        {% if booking.is_active %}
+            Yes
+        {% else %}
+            No
+        {% endif %}
+    </p>
+
+    {% if booking.is_active and booking.status in booking.ACTIVE_STATUSES %}
+
+        <div style="
+            margin-top:24px;
+            padding-top:20px;
+            border-top:1px solid #e5e7eb;
+        ">
+
+            <div style="
+                padding:16px;
+                background:#fff7ed;
+                border:1px solid #fed7aa;
+                border-radius:10px;
+                margin-bottom:14px;
+            ">
+                <strong style="display:block; margin-bottom:6px;">
+                    Manual Seat Vacation
+                </strong>
+
+                <p style="
+                    margin:0;
+                    color:#7c2d12;
+                    font-size:14px;
+                    line-height:1.5;
+                ">
+                    Use this only after physically refunding the student.
+                    No online refund will be processed by this action.
+                </p>
+            </div>
+
+            <form
+                method="post"
+                action="{% url 'admin_portal:booking_vacate' booking.id %}"
+                onsubmit="return confirm(
+                    'Confirm that the student has been physically refunded and release this seat?'
+                );"
+            >
+                {% csrf_token %}
+
+                <button
+                    type="submit"
+                    class="maintenance-submit"
+                    style="
+                        background:#b91c1c;
+                        color:white;
+                        border:none;
+                        padding:12px 20px;
+                        border-radius:8px;
+                        cursor:pointer;
+                        font-weight:600;
+                    "
+                >
+                    Vacate Seat
+                </button>
+            </form>
+
+        </div>
+
+    {% endif %}
+
+</div>
+
+
+<!-- STUDENT -->
+
+<div class="detail-card">
+
+    <h2>Student</h2>
+
+    <p>
+        <strong>Name:</strong>
+        {{ booking.student.student_profile.full_name|default:"—" }}
+    </p>
+
+    <p>
+        <strong>Email:</strong>
+        {{ booking.student.email }}
+    </p>
+
+    <p>
+        <strong>Phone:</strong>
+        {{ booking.student.phone_number|default:"—" }}
+    </p>
+
+</div>
+
+
+<!-- MEMBERSHIP TIMELINE -->
+
+<div class="detail-card">
+
+    <h2>Membership Timeline</h2>
+
+    <p>
+        <strong>Hold Created:</strong>
+        {{ booking.hold_created_at|date:"d M Y, H:i" }}
+    </p>
+
+    <p>
+        <strong>Hold Expires:</strong>
+        {{ booking.hold_expires_at|date:"d M Y, H:i" }}
+    </p>
+
+    <p>
+        <strong>Membership Start:</strong>
+        {% if booking.membership_start %}
+            {{ booking.membership_start|date:"d M Y, H:i" }}
+        {% else %}
+            Not started
+        {% endif %}
+    </p>
+
+    <p>
+        <strong>Membership Expires:</strong>
+        {% if booking.membership_expires_at %}
+            {{ booking.membership_expires_at|date:"d M Y, H:i" }}
+        {% else %}
+            —
+        {% endif %}
+    </p>
+
+    <p>
+        <strong>Grace Until:</strong>
+        {% if booking.grace_until %}
+            {{ booking.grace_until|date:"d M Y, H:i" }}
+        {% else %}
+            —
+        {% endif %}
+    </p>
+
+</div>
+
+
+<!-- PAYMENT HISTORY -->
+
+<div class="detail-card">
+
+    <h2>Payment History</h2>
+
+    {% for payment in payments %}
+
+        <div class="maintenance-log">
+
+            <p>
+                <strong>Status:</strong>
+                {{ payment.get_status_display }}
+            </p>
+
+            <p>
+                <strong>Amount:</strong>
+                ₹{{ payment.amount }}
+            </p>
+
+            {% if payment.utr_number %}
+                <p>
+                    <strong>UTR:</strong>
+                    {{ payment.utr_number }}
+                </p>
+            {% endif %}
+
+            {% if payment.submitted_at %}
+                <p>
+                    <strong>Submitted:</strong>
+                    {{ payment.submitted_at|date:"d M Y, H:i" }}
+                </p>
+            {% endif %}
+
+            {% if payment.verified_at %}
+                <p>
+                    <strong>Verified:</strong>
+                    {{ payment.verified_at|date:"d M Y, H:i" }}
+                </p>
+            {% endif %}
+
+        </div>
+
+    {% empty %}
+
+        <p>No payment records found.</p>
+
+    {% endfor %}
+
+</div>
+
+{% endblock %}

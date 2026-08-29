@@ -1,0 +1,92 @@
+{% extends "admin_portal/base.html" %}
+
+{% block content %}
+
+<div class="page-header">
+    <div>
+        <h1>Seat Management</h1>
+        <p>Manage all 150 physical library seats.</p>
+    </div>
+</div>
+
+<div class="stats-grid">
+    <div class="stat-card">
+        <span>Total Seats</span>
+        <strong>{{ counts.total }}</strong>
+    </div>
+
+    <div class="stat-card">
+        <span>Available</span>
+        <strong>{{ counts.available }}</strong>
+    </div>
+
+    <div class="stat-card">
+        <span>Held</span>
+        <strong>{{ counts.held }}</strong>
+    </div>
+
+    <div class="stat-card">
+        <span>Occupied</span>
+        <strong>{{ counts.booked }}</strong>
+    </div>
+
+    <div class="stat-card">
+        <span>Maintenance</span>
+        <strong>{{ counts.maintenance }}</strong>
+    </div>
+</div>
+
+<div class="filter-bar">
+    <a href="{% url 'admin_portal:seats' %}">
+        All
+    </a>
+
+    <a href="?status=AVAILABLE">
+        Available
+    </a>
+
+    <a href="?status=HELD">
+        Held
+    </a>
+
+    <a href="?status=BOOKED">
+        Occupied
+    </a>
+
+    <a href="?status=MAINTENANCE">
+        Maintenance
+    </a>
+</div>
+
+<div class="seat-grid">
+
+    {% for row in seat_rows %}
+
+        <a
+            href="{% url 'admin_portal:seat_detail' row.seat.id %}"
+            class="seat-card seat-{{ row.seat.status|lower }}"
+        >
+            <div class="seat-number">
+                {{ row.seat.number }}
+            </div>
+
+            <div class="seat-status">
+                {{ row.seat.get_status_display }}
+            </div>
+
+            {% if row.booking %}
+                <div class="seat-student">
+                    {{ row.booking.student.email }}
+                </div>
+            {% endif %}
+        </a>
+
+    {% empty %}
+
+        <p>No seats found.</p>
+
+    {% endfor %}
+
+</div>
+
+{% endblock %}

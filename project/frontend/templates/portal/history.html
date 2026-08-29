@@ -1,0 +1,386 @@
+{% extends "base.html" %}
+
+{% block title %}Booking & Payment History | Bhagya Laxmi Library{% endblock %}
+
+{% block content %}
+
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+    <!-- =========================================================
+         PAGE HEADER
+    ========================================================== -->
+
+    <div class="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+
+        <div>
+            <h1 class="text-2xl font-bold text-slate-900">
+                Seat Booking & Receipt History
+            </h1>
+
+            <p class="text-sm text-slate-500 mt-1">
+                View official payment receipts, transaction references,
+                and past study seat allocations.
+            </p>
+        </div>
+
+        <a
+            href="{% url 'portal:dashboard' %}"
+            class="text-sm font-medium text-emerald-600 hover:text-emerald-700"
+        >
+            &larr; Back to Dashboard
+        </a>
+
+    </div>
+
+
+    <!-- =========================================================
+         OFFICIAL RECEIPTS
+    ========================================================== -->
+
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 sm:p-8 mb-8">
+
+        <h2 class="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
+            <span>🧾</span>
+            Official Payment Receipts ({{ receipts|length }})
+        </h2>
+
+
+        {% if receipts %}
+
+            <div class="overflow-x-auto">
+
+                <table class="min-w-full divide-y divide-slate-200 text-sm">
+
+                    <thead>
+
+                        <tr class="bg-slate-50 text-slate-600 text-xs uppercase font-semibold text-left">
+
+                            <th class="py-3 px-4">
+                                Receipt #
+                            </th>
+
+                            <th class="py-3 px-4">
+                                Seat Number
+                            </th>
+
+                            <th class="py-3 px-4">
+                                Amount Paid
+                            </th>
+
+                            <th class="py-3 px-4">
+                                Membership Validity
+                            </th>
+
+                            <th class="py-3 px-4">
+                                UTR Reference
+                            </th>
+
+                            <th class="py-3 px-4">
+                                Issued Date
+                            </th>
+
+                            <th class="py-3 px-4 text-right">
+                                Receipt
+                            </th>
+
+                        </tr>
+
+                    </thead>
+
+
+                    <tbody class="divide-y divide-slate-100">
+
+                        {% for receipt in receipts %}
+
+                            <tr class="hover:bg-slate-50 transition-colors">
+
+                                <!-- Receipt Number -->
+
+                                <td class="py-3.5 px-4 font-mono font-bold text-slate-900 whitespace-nowrap">
+
+                                    {{ receipt.receipt_number }}
+
+                                </td>
+
+
+                                <!-- Seat -->
+
+                                <td class="py-3.5 px-4 font-semibold text-emerald-700 whitespace-nowrap">
+
+                                    Seat #{{ receipt.seat_number }}
+
+                                </td>
+
+
+                                <!-- Amount -->
+
+                                <td class="py-3.5 px-4 font-bold text-slate-900 whitespace-nowrap">
+
+                                    ₹{{ receipt.amount_paid }}
+
+                                </td>
+
+
+                                <!-- Membership -->
+
+                                <td class="py-3.5 px-4 text-xs text-slate-600 whitespace-nowrap">
+
+                                    {{ receipt.membership_start|date:"d M Y" }}
+
+                                    &rarr;
+
+                                    {{ receipt.membership_expires_at|date:"d M Y" }}
+
+                                </td>
+
+
+                                <!-- UTR -->
+
+                                <td class="py-3.5 px-4 font-mono text-xs text-slate-700 whitespace-nowrap">
+
+                                    {{ receipt.utr_reference|default:"—" }}
+
+                                </td>
+
+
+                                <!-- Issued Date -->
+
+                                <td class="py-3.5 px-4 text-xs text-slate-500 whitespace-nowrap">
+
+                                    {{ receipt.issued_at|date:"d M Y, h:i A" }}
+
+                                </td>
+
+
+                                <!-- Download -->
+
+                                <td class="py-3.5 px-4 text-right whitespace-nowrap">
+
+                                    <a
+                                        href="{% url 'portal:download_receipt' receipt.id %}"
+                                        class="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold transition-colors shadow-sm"
+                                    >
+                                        🧾 Download
+                                    </a>
+
+                                </td>
+
+                            </tr>
+
+                        {% endfor %}
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+
+        {% else %}
+
+            <div class="py-8 text-center">
+
+                <div class="text-4xl mb-3">
+                    🧾
+                </div>
+
+                <p class="text-sm text-slate-500">
+                    No official receipts issued yet.
+                </p>
+
+                <p class="text-xs text-slate-400 mt-1">
+                    Receipts appear here once payments are verified
+                    by the administrator.
+                </p>
+
+            </div>
+
+        {% endif %}
+
+    </div>
+
+
+
+    <!-- =========================================================
+         BOOKING ALLOCATIONS HISTORY
+    ========================================================== -->
+
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 sm:p-8">
+
+        <h2 class="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
+
+            <span>🪑</span>
+
+            Seat Booking Allocations ({{ bookings|length }})
+
+        </h2>
+
+
+        {% if bookings %}
+
+            <div class="overflow-x-auto">
+
+                <table class="min-w-full divide-y divide-slate-200 text-sm">
+
+                    <thead>
+
+                        <tr class="bg-slate-50 text-slate-600 text-xs uppercase font-semibold text-left">
+
+                            <th class="py-3 px-4">
+                                Booking Ref
+                            </th>
+
+                            <th class="py-3 px-4">
+                                Seat
+                            </th>
+
+                            <th class="py-3 px-4">
+                                Booking Date
+                            </th>
+
+                            <th class="py-3 px-4">
+                                Status
+                            </th>
+
+                            <th class="py-3 px-4">
+                                Membership Start
+                            </th>
+
+                            <th class="py-3 px-4">
+                                Expiry Date
+                            </th>
+
+                        </tr>
+
+                    </thead>
+
+
+                    <tbody class="divide-y divide-slate-100">
+
+                        {% for bkg in bookings %}
+
+                            <tr class="hover:bg-slate-50 transition-colors">
+
+                                <!-- Booking Reference -->
+
+                                <td class="py-3.5 px-4 font-mono text-xs font-semibold text-slate-800 whitespace-nowrap">
+
+                                    {{ bkg.booking_reference }}
+
+                                </td>
+
+
+                                <!-- Seat -->
+
+                                <td class="py-3.5 px-4 font-semibold text-slate-900 whitespace-nowrap">
+
+                                    Seat #{{ bkg.seat.number }}
+
+                                </td>
+
+
+                                <!-- Booking Date -->
+
+                                <td class="py-3.5 px-4 text-xs text-slate-500 whitespace-nowrap">
+
+                                    {{ bkg.created_at|date:"d M Y, h:i A" }}
+
+                                </td>
+
+
+                                <!-- Status -->
+
+                                <td class="py-3.5 px-4 whitespace-nowrap">
+
+                                    {% if bkg.status == 'CONFIRMED' %}
+
+                                        <span class="inline-flex px-2 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800">
+                                            Confirmed
+                                        </span>
+
+                                    {% elif bkg.status == 'PENDING_PAYMENT' %}
+
+                                        <span class="inline-flex px-2 py-0.5 rounded-full text-xs font-semibold bg-blue-100 text-blue-800">
+                                            Pending Payment
+                                        </span>
+
+                                    {% elif bkg.status == 'GRACE_PERIOD' %}
+
+                                        <span class="inline-flex px-2 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-800">
+                                            Grace Period
+                                        </span>
+
+                                    {% elif bkg.status == 'EXPIRED' %}
+
+                                        <span class="inline-flex px-2 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-700">
+                                            Expired
+                                        </span>
+
+                                    {% else %}
+
+                                        <span class="inline-flex px-2 py-0.5 rounded-full text-xs font-semibold bg-rose-100 text-rose-700">
+                                            Cancelled
+                                        </span>
+
+                                    {% endif %}
+
+                                </td>
+
+
+                                <!-- Membership Start -->
+
+                                <td class="py-3.5 px-4 text-xs text-slate-600 whitespace-nowrap">
+
+                                    {% if bkg.membership_start %}
+                                        {{ bkg.membership_start|date:"d M Y" }}
+                                    {% else %}
+                                        —
+                                    {% endif %}
+
+                                </td>
+
+
+                                <!-- Expiry -->
+
+                                <td class="py-3.5 px-4 text-xs text-slate-600 whitespace-nowrap">
+
+                                    {% if bkg.membership_expires_at %}
+                                        {{ bkg.membership_expires_at|date:"d M Y" }}
+                                    {% else %}
+                                        —
+                                    {% endif %}
+
+                                </td>
+
+                            </tr>
+
+                        {% endfor %}
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+
+        {% else %}
+
+            <div class="py-8 text-center">
+
+                <div class="text-4xl mb-3">
+                    🪑
+                </div>
+
+                <p class="text-sm text-slate-500">
+                    No past bookings found.
+                </p>
+
+            </div>
+
+        {% endif %}
+
+    </div>
+
+</div>
+
+{% endblock %}

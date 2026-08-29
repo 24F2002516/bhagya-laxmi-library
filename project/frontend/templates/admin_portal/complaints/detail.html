@@ -1,0 +1,218 @@
+{% extends "admin_portal/base.html" %}
+
+{% block title %}{{ complaint.ticket_number }}{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+
+    <div>
+        <h1>{{ complaint.ticket_number }}</h1>
+        <p>Complaint details and resolution management.</p>
+    </div>
+
+    <a
+        href="{% url 'admin_portal:complaints' %}"
+        class="back-link"
+    >
+        ← Back to Complaints
+    </a>
+
+</div>
+
+
+<!-- COMPLAINT -->
+
+<div class="detail-card">
+
+    <h2>Complaint</h2>
+
+    <p>
+        <strong>Ticket:</strong>
+        {{ complaint.ticket_number }}
+    </p>
+
+    <p>
+        <strong>Title:</strong>
+        {{ complaint.title }}
+    </p>
+
+    <p>
+        <strong>Category:</strong>
+        {{ complaint.get_category_display }}
+    </p>
+
+    <p>
+        <strong>Status:</strong>
+        {{ complaint.get_status_display }}
+    </p>
+
+    {% if complaint.seat %}
+        <p>
+            <strong>Seat:</strong>
+            #{{ complaint.seat.number }}
+        </p>
+    {% endif %}
+
+    <p>
+        <strong>Submitted:</strong>
+        {{ complaint.created_at|date:"d M Y, H:i" }}
+    </p>
+
+</div>
+
+
+<!-- STUDENT -->
+
+<div class="detail-card">
+
+    <h2>Student</h2>
+
+    <p>
+        <strong>Name:</strong>
+        {{ complaint.student.student_profile.full_name|default:"—" }}
+    </p>
+
+    <p>
+        <strong>Email:</strong>
+        {{ complaint.student.email }}
+    </p>
+
+    <p>
+        <strong>Phone:</strong>
+        {{ complaint.student.phone_number|default:"—" }}
+    </p>
+
+</div>
+
+
+<!-- DESCRIPTION -->
+
+<div class="detail-card">
+
+    <h2>Description</h2>
+
+    <p style="
+        line-height:1.7;
+        color:#374151;
+        white-space:pre-line;
+    ">
+        {{ complaint.description }}
+    </p>
+
+</div>
+
+
+<!-- ADMIN ACTION -->
+
+<div class="detail-card">
+
+    <h2>Manage Complaint</h2>
+
+    <form
+        method="post"
+        action="{% url 'admin_portal:complaint_update' complaint.id %}"
+    >
+
+        {% csrf_token %}
+
+        <label for="status">
+            Status
+        </label>
+
+        <select
+            id="status"
+            name="status"
+            style="
+                display:block;
+                width:100%;
+                max-width:500px;
+                margin:8px 0 20px;
+                padding:12px;
+                border:1px solid #d1d5db;
+                border-radius:10px;
+                background:white;
+            "
+        >
+
+            {% for choice in complaint_statuses %}
+
+                <option
+                    value="{{ choice.value }}"
+                    {% if complaint.status == choice.value %}
+                        selected
+                    {% endif %}
+                >
+                    {{ choice.label }}
+                </option>
+
+            {% endfor %}
+
+        </select>
+
+
+        <label for="resolution_notes">
+            Resolution Notes
+        </label>
+
+        <textarea
+            id="resolution_notes"
+            name="resolution_notes"
+            rows="5"
+            placeholder="Add investigation or resolution notes..."
+            style="
+                display:block;
+                width:100%;
+                max-width:700px;
+                margin:8px 0 20px;
+                padding:12px;
+                border:1px solid #d1d5db;
+                border-radius:10px;
+                resize:vertical;
+                box-sizing:border-box;
+            "
+        >{{ complaint.resolution_notes }}</textarea>
+
+
+        <button
+            type="submit"
+            class="maintenance-submit"
+        >
+            Save Complaint Update
+        </button>
+
+    </form>
+
+</div>
+
+
+<!-- RESOLUTION -->
+
+{% if complaint.resolved_at %}
+
+<div class="detail-card">
+
+    <h2>Resolution</h2>
+
+    <p>
+        <strong>Resolved By:</strong>
+        {{ complaint.resolved_by.email }}
+    </p>
+
+    <p>
+        <strong>Resolved At:</strong>
+        {{ complaint.resolved_at|date:"d M Y, H:i" }}
+    </p>
+
+    {% if complaint.resolution_notes %}
+        <p>
+            <strong>Notes:</strong>
+            {{ complaint.resolution_notes }}
+        </p>
+    {% endif %}
+
+</div>
+
+{% endif %}
+
+{% endblock %}

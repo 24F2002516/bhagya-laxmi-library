@@ -1,0 +1,217 @@
+{% extends "admin_portal/base.html" %}
+
+{% block title %}Feedback{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+
+    <div>
+        <h1>Feedback Details</h1>
+        <p>Review and manage student feedback.</p>
+    </div>
+
+    <a
+        href="{% url 'admin_portal:feedback' %}"
+        class="back-link"
+    >
+        ← Back to Feedback
+    </a>
+
+</div>
+
+
+<!-- STUDENT -->
+
+<div class="detail-card">
+
+    <h2>Student</h2>
+
+    <p>
+        <strong>Name:</strong>
+
+        {% if feedback.student.student_profile %}
+            {{ feedback.student.student_profile.full_name }}
+        {% else %}
+            —
+        {% endif %}
+    </p>
+
+    <p>
+        <strong>Email:</strong>
+        {{ feedback.student.email }}
+    </p>
+
+    <p>
+        <strong>Phone:</strong>
+        {{ feedback.student.phone_number }}
+    </p>
+
+</div>
+
+
+<!-- FEEDBACK -->
+
+<div class="detail-card">
+
+    <h2>Feedback</h2>
+
+    <p>
+        <strong>Category:</strong>
+        {{ feedback.get_category_display }}
+    </p>
+
+    <p>
+        <strong>Rating:</strong>
+
+        <span style="
+            font-size:20px;
+            letter-spacing:2px;
+        ">
+            {% for i in "12345" %}
+                {% if forloop.counter <= feedback.rating %}
+                    ★
+                {% else %}
+                    ☆
+                {% endif %}
+            {% endfor %}
+        </span>
+
+        <span style="color:#6b7280;">
+            ({{ feedback.rating }}/5)
+        </span>
+    </p>
+
+    <p>
+        <strong>Submitted:</strong>
+        {{ feedback.created_at|date:"d M Y, H:i" }}
+    </p>
+
+    <div style="
+        margin-top:20px;
+        padding:18px;
+        background:#f9fafb;
+        border-radius:10px;
+        line-height:1.6;
+        color:#374151;
+    ">
+        {{ feedback.description|linebreaksbr }}
+    </div>
+
+</div>
+
+
+<!-- ADMIN REVIEW -->
+
+<div class="detail-card">
+
+    <h2>Admin Review</h2>
+
+    <form
+        method="post"
+        action="{% url 'admin_portal:feedback_update' feedback.id %}"
+    >
+
+        {% csrf_token %}
+
+        <label
+            for="admin_notes"
+            style="
+                display:block;
+                margin-bottom:8px;
+                font-weight:600;
+            "
+        >
+            Internal Notes
+        </label>
+
+        <textarea
+            id="admin_notes"
+            name="admin_notes"
+            rows="5"
+            placeholder="Add internal notes about this feedback..."
+            style="
+                width:100%;
+                padding:12px 14px;
+                border:1px solid #d1d5db;
+                border-radius:10px;
+                resize:vertical;
+                box-sizing:border-box;
+            "
+        >{{ feedback.admin_notes }}</textarea>
+
+
+        <div style="
+            margin-top:18px;
+            display:flex;
+            align-items:center;
+            justify-content:space-between;
+            gap:15px;
+            flex-wrap:wrap;
+        ">
+
+            <label style="
+                display:flex;
+                align-items:center;
+                gap:10px;
+                cursor:pointer;
+            ">
+
+                <input
+                    type="checkbox"
+                    name="is_reviewed"
+                    value="1"
+                    {% if feedback.is_reviewed %}checked{% endif %}
+                    style="
+                        width:18px;
+                        height:18px;
+                    "
+                >
+
+                <span>
+                    Mark as reviewed
+                </span>
+
+            </label>
+
+
+            <button
+                type="submit"
+                class="maintenance-submit"
+            >
+                Save Review
+            </button>
+
+        </div>
+
+    </form>
+
+
+    {% if feedback.is_reviewed %}
+
+        <div style="
+            margin-top:20px;
+            padding-top:16px;
+            border-top:1px solid #e5e7eb;
+            color:#6b7280;
+            font-size:14px;
+        ">
+
+            Reviewed by:
+
+            <strong>
+                {{ feedback.reviewed_by.email }}
+            </strong>
+
+            {% if feedback.reviewed_at %}
+                ·
+                {{ feedback.reviewed_at|date:"d M Y, H:i" }}
+            {% endif %}
+
+        </div>
+
+    {% endif %}
+
+</div>
+
+{% endblock %}

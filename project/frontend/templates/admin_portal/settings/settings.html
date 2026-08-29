@@ -1,0 +1,348 @@
+{% extends "admin_portal/base.html" %}
+
+{% block title %}Settings{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+    <div>
+        <h1>Settings</h1>
+        <p>Manage runtime configuration for Bhagya Laxmi Library.</p>
+    </div>
+</div>
+
+
+<form method="post" enctype="multipart/form-data">
+
+    {% csrf_token %}
+
+
+    <!-- ==============================
+         LIBRARY CONFIGURATION
+    =============================== -->
+
+    <div class="detail-card">
+
+        <div style="margin-bottom:24px;">
+            <h2 style="margin-bottom:6px;">
+                Library Configuration
+            </h2>
+
+            <p style="
+                margin:0;
+                color:#6b7280;
+                font-size:14px;
+            ">
+                Configure operational settings used by the booking and
+                payment system.
+            </p>
+        </div>
+
+
+        {% for setting in settings %}
+
+            <div style="
+                padding:20px 0;
+                border-top:1px solid #e5e7eb;
+            ">
+
+                <label
+                    for="{{ setting.key }}"
+                    style="
+                        display:block;
+                        font-weight:600;
+                        margin-bottom:7px;
+                        color:#111827;
+                    "
+                >
+                    {{ setting.label }}
+                </label>
+
+
+                <p style="
+                    margin:0 0 10px;
+                    color:#6b7280;
+                    font-size:13px;
+                    line-height:1.5;
+                ">
+                    {{ setting.description }}
+                </p>
+
+
+                <!-- ==============================
+                     MAINTENANCE BANNER
+                =============================== -->
+
+                {% if setting.key == "MAINTENANCE_BANNER" %}
+
+                    <textarea
+                        id="{{ setting.key }}"
+                        name="{{ setting.key }}"
+                        rows="3"
+                        placeholder="Example: Library will remain closed on Sunday."
+                        style="
+                            width:100%;
+                            box-sizing:border-box;
+                            padding:12px 14px;
+                            border:1px solid #d1d5db;
+                            border-radius:10px;
+                            font:inherit;
+                            resize:vertical;
+                        "
+                    >{{ setting.value }}</textarea>
+
+
+                <!-- ==============================
+                     UPI QR CODE
+                =============================== -->
+
+                {% elif setting.key == "UPI_QR_IMAGE" %}
+
+                    <div style="
+                        display:flex;
+                        flex-direction:column;
+                        gap:14px;
+                    ">
+
+                        {% if setting.value %}
+
+                            <div>
+
+                                <p style="
+                                    margin:0 0 8px;
+                                    color:#6b7280;
+                                    font-size:13px;
+                                ">
+                                    Current QR Code
+                                </p>
+
+                                <img
+                                    src="/media/{{ setting.value }}"
+                                    alt="Current UPI QR Code"
+                                    style="
+                                        display:block;
+                                        width:220px;
+                                        height:220px;
+                                        object-fit:contain;
+                                        border:1px solid #e5e7eb;
+                                        border-radius:12px;
+                                        padding:10px;
+                                        background:white;
+                                    "
+                                >
+
+                            </div>
+
+                        {% else %}
+
+                            <div style="
+                                width:220px;
+                                height:220px;
+                                display:flex;
+                                align-items:center;
+                                justify-content:center;
+                                border:1px dashed #d1d5db;
+                                border-radius:12px;
+                                color:#6b7280;
+                                background:#f9fafb;
+                                text-align:center;
+                                padding:20px;
+                                box-sizing:border-box;
+                            ">
+                                No QR code uploaded yet.
+                            </div>
+
+                        {% endif %}
+
+
+                        <input
+                            type="file"
+                            id="{{ setting.key }}"
+                            name="{{ setting.key }}"
+                            accept="image/png,image/jpeg,image/webp"
+                            style="
+                                width:100%;
+                                max-width:500px;
+                                box-sizing:border-box;
+                                padding:10px;
+                                border:1px solid #d1d5db;
+                                border-radius:10px;
+                                background:white;
+                                font:inherit;
+                            "
+                        >
+
+                        <small style="
+                            color:#6b7280;
+                            font-size:13px;
+                        ">
+                            Upload PNG, JPG, or WebP.
+                            Leave empty to keep the current QR code.
+                        </small>
+
+                    </div>
+
+
+                <!-- ==============================
+                     NORMAL TEXT SETTINGS
+                =============================== -->
+
+                {% else %}
+
+                    <div style="
+                        display:flex;
+                        align-items:center;
+                        gap:10px;
+                    ">
+
+                        <input
+                            type="text"
+                            id="{{ setting.key }}"
+                            name="{{ setting.key }}"
+                            value="{{ setting.value }}"
+                            style="
+                                width:100%;
+                                max-width:500px;
+                                box-sizing:border-box;
+                                padding:12px 14px;
+                                border:1px solid #d1d5db;
+                                border-radius:10px;
+                                font:inherit;
+                            "
+                        >
+
+                        {% if setting.unit %}
+
+                            <span style="
+                                color:#6b7280;
+                                font-size:14px;
+                                white-space:nowrap;
+                            ">
+                                {{ setting.unit }}
+                            </span>
+
+                        {% endif %}
+
+                    </div>
+
+                {% endif %}
+
+            </div>
+
+        {% endfor %}
+
+    </div>
+
+
+    <!-- ==============================
+         SYSTEM INFORMATION
+    =============================== -->
+
+    <div class="detail-card">
+
+        <h2>System Information</h2>
+
+        <div style="
+            display:grid;
+            grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+            gap:16px;
+            margin-top:18px;
+        ">
+
+            <div style="
+                padding:16px;
+                background:#f9fafb;
+                border:1px solid #e5e7eb;
+                border-radius:10px;
+            ">
+
+                <div style="
+                    color:#6b7280;
+                    font-size:13px;
+                    margin-bottom:5px;
+                ">
+                    Application
+                </div>
+
+                <strong>
+                    Bhagya Laxmi Library
+                </strong>
+
+            </div>
+
+
+            <div style="
+                padding:16px;
+                background:#f9fafb;
+                border:1px solid #e5e7eb;
+                border-radius:10px;
+            ">
+
+                <div style="
+                    color:#6b7280;
+                    font-size:13px;
+                    margin-bottom:5px;
+                ">
+                    Configuration
+                </div>
+
+                <strong>
+                    Runtime Settings
+                </strong>
+
+            </div>
+
+
+            <div style="
+                padding:16px;
+                background:#f9fafb;
+                border:1px solid #e5e7eb;
+                border-radius:10px;
+            ">
+
+                <div style="
+                    color:#6b7280;
+                    font-size:13px;
+                    margin-bottom:5px;
+                ">
+                    Access
+                </div>
+
+                <strong>
+                    Administrators Only
+                </strong>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ==============================
+         SAVE
+    =============================== -->
+
+    <div style="
+        display:flex;
+        justify-content:flex-end;
+        margin-top:20px;
+    ">
+
+        <button
+            type="submit"
+            class="maintenance-submit"
+            style="
+                min-width:160px;
+                padding:13px 22px;
+                font-size:15px;
+            "
+        >
+            Save Settings
+        </button>
+
+    </div>
+
+</form>
+
+{% endblock %}

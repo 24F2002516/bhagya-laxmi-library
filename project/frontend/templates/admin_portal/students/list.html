@@ -1,0 +1,221 @@
+{% extends "admin_portal/base.html" %}
+
+{% block title %}Students{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+    <div>
+        <h1>Students</h1>
+        <p>Manage registered library students.</p>
+    </div>
+</div>
+
+
+<!-- Search + Filters -->
+
+<div class="detail-card">
+
+    <form method="get" class="flex flex-wrap gap-3">
+
+        <input
+            type="search"
+            name="q"
+            value="{{ search }}"
+            placeholder="Search name, email or phone..."
+            class="flex-1 min-w-[240px] px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
+        >
+
+        <select
+            name="status"
+            class="px-4 py-2 border border-gray-300 rounded-lg"
+        >
+            <option value="ALL" {% if status == "ALL" %}selected{% endif %}>
+                All Students
+            </option>
+
+            <option value="ACTIVE" {% if status == "ACTIVE" %}selected{% endif %}>
+                Active
+            </option>
+
+            <option value="INACTIVE" {% if status == "INACTIVE" %}selected{% endif %}>
+                Inactive
+            </option>
+        </select>
+
+        <button
+            type="submit"
+            class="px-5 py-2 rounded-lg bg-gray-900 text-white font-medium hover:bg-gray-800"
+        >
+            Search
+        </button>
+
+    </form>
+
+</div>
+
+
+<!-- Student Table -->
+
+<div class="detail-card overflow-x-auto">
+
+    <table class="w-full text-sm">
+
+        <thead>
+            <tr class="border-b border-gray-200 text-left">
+
+                <th class="py-3 pr-4">
+                    Student
+                </th>
+
+                <th class="py-3 pr-4">
+                    Phone
+                </th>
+
+                <th class="py-3 pr-4">
+                    Status
+                </th>
+
+                <th class="py-3 pr-4">
+                    Joined
+                </th>
+
+                <th class="py-3">
+                    Action
+                </th>
+
+            </tr>
+        </thead>
+
+
+        <tbody>
+
+            {% for student in page_obj %}
+
+            <tr class="border-b border-gray-100 hover:bg-gray-50">
+
+                <td class="py-4 pr-4">
+
+                    <div class="font-medium text-gray-900">
+                        {% if student.student_profile %}
+                            {{ student.student_profile.full_name }}
+                        {% else %}
+                            —
+                        {% endif %}
+                    </div>
+
+                    <div class="text-xs text-gray-500">
+                        {{ student.email }}
+                    </div>
+
+                </td>
+
+
+                <td class="py-4 pr-4">
+                    {{ student.phone_number }}
+                </td>
+
+
+                <td class="py-4 pr-4">
+
+                    {% if student.is_active %}
+
+                        <span class="inline-flex px-2.5 py-1 rounded-full bg-green-100 text-green-800 text-xs font-semibold">
+                            Active
+                        </span>
+
+                    {% else %}
+
+                        <span class="inline-flex px-2.5 py-1 rounded-full bg-red-100 text-red-800 text-xs font-semibold">
+                            Inactive
+                        </span>
+
+                    {% endif %}
+
+                </td>
+
+
+                <td class="py-4 pr-4 text-gray-600">
+                    {{ student.date_joined|date:"d M Y" }}
+                </td>
+
+
+                <td class="py-4">
+
+                    <a
+                        href="{% url 'admin_portal:student_detail' student.id %}"
+                        class="inline-flex px-3 py-1.5 rounded-lg bg-gray-100 hover:bg-gray-200 font-medium"
+                    >
+                        View
+                    </a>
+
+                </td>
+
+            </tr>
+
+            {% empty %}
+
+            <tr>
+
+                <td
+                    colspan="5"
+                    class="py-12 text-center text-gray-500"
+                >
+                    No students found.
+                </td>
+
+            </tr>
+
+            {% endfor %}
+
+        </tbody>
+
+    </table>
+
+</div>
+
+
+<!-- Pagination -->
+
+{% if page_obj.paginator.num_pages > 1 %}
+
+<div class="flex items-center justify-between mt-5">
+
+    <div class="text-sm text-gray-500">
+        Page {{ page_obj.number }}
+        of {{ page_obj.paginator.num_pages }}
+    </div>
+
+
+    <div class="flex gap-2">
+
+        {% if page_obj.has_previous %}
+
+            <a
+                href="?q={{ search }}&status={{ status }}&page={{ page_obj.previous_page_number }}"
+                class="px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm"
+            >
+                ← Previous
+            </a>
+
+        {% endif %}
+
+
+        {% if page_obj.has_next %}
+
+            <a
+                href="?q={{ search }}&status={{ status }}&page={{ page_obj.next_page_number }}"
+                class="px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm"
+            >
+                Next →
+            </a>
+
+        {% endif %}
+
+    </div>
+
+</div>
+
+{% endif %}
+
+{% endblock %}
