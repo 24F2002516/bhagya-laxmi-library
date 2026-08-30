@@ -19,6 +19,21 @@ urlpatterns = [
         name="logout",
     ),
     path(
+        "forgot-password/",
+        views.admin_forgot_password_view,
+        name="forgot_password",
+    ),
+    path(
+        "verify-reset-otp/",
+        views.admin_verify_reset_otp_view,
+        name="verify_reset_otp",
+    ),
+    path(
+        "set-new-password/",
+        views.admin_set_new_password_view,
+        name="set_new_password",
+    ),
+    path(
         "change-password/",
         views.admin_change_password_view,
         name="change_password",

@@ -10,7 +10,13 @@ from django.views.decorators.http import require_POST
 from django.shortcuts import redirect, render
 from django.utils import timezone
 
-from apps.accounts.forms import AuthenticatedResetPasswordForm, ChangePasswordForm
+from apps.accounts.forms import (
+    AuthenticatedResetPasswordForm,
+    ChangePasswordForm,
+    ForgotPasswordForm,
+    SetNewPasswordForm,
+    VerifyOTPForm,
+)
 from apps.accounts.models import EmailOTP, User
 from apps.accounts.services import send_otp_email
 from apps.accounts.views import mask_email
@@ -71,6 +77,137 @@ def admin_login_view(request):
 def admin_logout_view(request):
     logout(request)
     return redirect("admin_portal:login")
+
+
+def admin_forgot_password_view(request):
+    """
+    Step 1 of the logged-out admin password reset flow: collects the admin
+    email and dispatches a 6-digit OTP. Only the single admin account
+    (role=ADMIN) can ever receive an OTP here; uses account-enumeration
+    safe messaging either way, mirroring the student portal flow.
+    """
+    if request.user.is_authenticated and request.user.is_admin_user:
+        return redirect("admin_portal:dashboard")
+
+    if request.method == "POST":
+        form = ForgotPasswordForm(request.POST)
+        if form.is_valid():
+            email = form.cleaned_data["email"]
+            user = User.objects.filter(
+                email__iexact=email,
+                role=User.Role.ADMIN,
+                is_active=True,
+            ).first()
+
+            if user:
+                otp_obj, raw_code, success = send_otp_email(user, EmailOTP.Purpose.PASSWORD_RESET)
+                if success:
+                    request.session["admin_reset_user_id"] = user.id
+                    request.session["admin_reset_email"] = user.email
+            else:
+                request.session["admin_reset_email"] = email
+
+            messages.info(
+                request,
+                f"If an admin account is associated with {email}, a 6-digit verification code has been sent.",
+            )
+            return redirect("admin_portal:verify_reset_otp")
+    else:
+        form = ForgotPasswordForm()
+
+    return render(request, "admin_portal/forgot_password.html", {"form": form})
+
+
+def admin_verify_reset_otp_view(request):
+    """
+    Step 2: Verifies the 6-digit OTP code for the logged-out admin password
+    reset flow.
+    """
+    if request.user.is_authenticated and request.user.is_admin_user:
+        return redirect("admin_portal:dashboard")
+
+    user_id = request.session.get("admin_reset_user_id")
+    email = request.session.get("admin_reset_email")
+
+    if not email:
+        messages.warning(request, "Please enter the admin email address first.")
+        return redirect("admin_portal:forgot_password")
+
+    if request.method == "POST":
+        form = VerifyOTPForm(request.POST)
+        if form.is_valid():
+            otp_code = form.cleaned_data["otp_code"]
+
+            if not user_id:
+                form.add_error("otp_code", "Invalid or expired verification code.")
+            else:
+                user = User.objects.filter(id=user_id, role=User.Role.ADMIN, is_active=True).first()
+                if not user:
+                    form.add_error("otp_code", "Admin account not found.")
+                else:
+                    otp_obj = (
+                        EmailOTP.objects
+                        .filter(
+                            user=user,
+                            purpose=EmailOTP.Purpose.PASSWORD_RESET,
+                            is_used=False,
+                            expires_at__gt=timezone.now(),
+                        )
+                        .order_by("-created_at")
+                        .first()
+                    )
+                    if otp_obj and otp_obj.verify(otp_code):
+                        request.session["admin_reset_otp_verified"] = True
+                        messages.success(request, "Verification code confirmed. Please set your new password.")
+                        return redirect("admin_portal:set_new_password")
+                    else:
+                        form.add_error("otp_code", "Invalid, expired, or locked verification code.")
+    else:
+        form = VerifyOTPForm()
+
+    return render(
+        request,
+        "admin_portal/verify_reset_otp.html",
+        {"form": form, "email": email},
+    )
+
+
+def admin_set_new_password_view(request):
+    """
+    Step 3: Lets the admin choose a new password after a verified OTP,
+    for the logged-out password reset flow.
+    """
+    if request.user.is_authenticated and request.user.is_admin_user:
+        return redirect("admin_portal:dashboard")
+
+    user_id = request.session.get("admin_reset_user_id")
+    otp_verified = request.session.get("admin_reset_otp_verified")
+
+    if not user_id or not otp_verified:
+        messages.error(request, "Unauthorized password reset attempt. Please verify your OTP code.")
+        return redirect("admin_portal:forgot_password")
+
+    user = User.objects.filter(id=user_id, role=User.Role.ADMIN, is_active=True).first()
+    if not user:
+        messages.error(request, "Admin account not found.")
+        return redirect("admin_portal:forgot_password")
+
+    if request.method == "POST":
+        form = SetNewPasswordForm(request.POST)
+        if form.is_valid():
+            user.set_password(form.cleaned_data["new_password"])
+            user.save(update_fields=["password", "updated_at"])
+
+            request.session.pop("admin_reset_user_id", None)
+            request.session.pop("admin_reset_email", None)
+            request.session.pop("admin_reset_otp_verified", None)
+
+            messages.success(request, "Your password has been reset successfully! Please log in.")
+            return redirect("admin_portal:login")
+    else:
+        form = SetNewPasswordForm()
+
+    return render(request, "admin_portal/set_new_password.html", {"form": form})
 
 
 @admin_required
